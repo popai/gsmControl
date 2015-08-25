@@ -127,7 +127,7 @@ void Check_Protocol(String inStr)
 		break;
 
 	case 's': //S //Send SMS
-		sprintf_P(str, PSTR("Send SMS to %d"), number);
+		sprintf_P(str, PSTR("Send SMS to %s"), number);
 		Serial.println(str);
 		error = gsm.SendSMS(number, text);
 		if (error == 0)  //Check status
@@ -152,9 +152,9 @@ void Check_Protocol(String inStr)
 				error = gsm.DelPhoneNumber(inStr[2]);
 				if (error != 0)
 				{
-					Serial.print("Phone number position ");
-					Serial.print(inStr[2]);
-					Serial.println(" deleted");
+					sprintf_P(str, PSTR("Phone number position %c deleted"),
+							inStr[2]);
+					Serial.println(str);
 				}
 				break;
 
@@ -162,35 +162,41 @@ void Check_Protocol(String inStr)
 				error = gsm.GetPhoneNumber(inStr[2], number);
 				if (error != 0)  //Find number in specified position
 				{
-					Serial.print("Phone Book position ");
-					Serial.print(inStr[2]);
-					Serial.print(": ");
-					Serial.println(number);
+					sprintf_P(str, PSTR("Phone Book position %c: %s"), inStr[2],
+							number);
+					Serial.println(str);
 				}
 				else  //Not find number in specified position
 				{
-					Serial.print("No Phone number in position ");
-					Serial.println(inStr[2]);
+					sprintf_P(str, PSTR("No Phone number in position %c"),
+							inStr[2]);
+					Serial.println(str);
 				}
 				break;
 			case 'w':  //Write from Phone Book Position    pw2
-				//error = gsm.WritePhoneNumber(inStr[2], number);
+				error = gsm.WritePhoneNumber(inStr[2], number);
 				if (error != 0)
 				{
-					Serial.print("Number ");
-					Serial.print(number);
-					Serial.print(" writed in Phone Book position ");
-					Serial.println(inStr[2]);
+					sprintf_P(str,
+							PSTR("Number %s writed in Phone Book position %c"),
+							number, inStr[2]);
+					Serial.println(str);
 				}
 				else
-					Serial.println("Writing error");
+				{
+					strcpy_P(str, PSTR("Writing error"));
+					Serial.println(str);
+				}
 				break;
 
 			}
 
 		}
 		else
-			Serial.println("Writing error");
+		{
+			strcpy_P(str, PSTR("ERROR"));
+			Serial.println(str);
+		}
 		break;
 
 	}
