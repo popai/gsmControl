@@ -1,5 +1,5 @@
 /*
- * pinDef.h
+ * gsmControl.cpp
  *
  *  Created on: Aug 25, 2015
  *      Author: popai
@@ -45,16 +45,23 @@ void setup()
 	delay(100);
 	Serial.println("system startup");
 
-	strcpy_P(sms_rx, PSTR("Comanda ne scrisa"));
+	SetPort();
 
+	eeprom_read_block(sms_rx, (int*) 486, 24);
+	if (strlen(sms_rx) == 0)
+	{
+		strcpy_P(sms_rx, PSTR("Comanda ne scrisa"));
+		eeprom_write_block(sms_rx, (int*) 486, 24);
+		strcpy_P(sms_rx, 0x00);
+	}
 	//startup gsm module
 	uint8_t tri = 0;
-	while ((error == 0) && (tri < 3))  	//Check status
+	while ((error != REG_REGISTERED) && (tri < 3))  	//Check status
 	{
 		gsm.TurnOn(9600);          		//module power on
-		gsm.InitParam(PARAM_SET_1);		//configure the module
+		//gsm.InitParam(PARAM_SET_1);		//configure the module
 		gsm.Echo(0); 				 	//enable/disable AT echo
-		error = gsm.SendSMS(number, "Modul ON"); //TODO change to adder metode
+		error = gsm.CheckRegistration(); //XXX de verificat metoda
 		++tri;
 	}
 	if (error == 0)
@@ -120,7 +127,7 @@ void loop()
 		id = Check_SMS();
 		if (id == GETSMS_AUTH_SMS)
 			Comand(number, sms_rx);
-		else if(id == GETSMS_NOT_AUTH_SMS)
+		else if (id == GETSMS_NOT_AUTH_SMS)
 		{
 			//Check if receive a pas
 			char buffer[24];
@@ -159,7 +166,6 @@ void loop()
 					gsm.SendSMS(number, buffer);
 				}
 			}
-
 
 		}
 		*number = 0x00;
@@ -207,7 +213,7 @@ byte Check_SMS()
 			return GETSMS_AUTH_SMS;
 		}
 		else
-			return	GETSMS_NOT_AUTH_SMS;
+			return GETSMS_NOT_AUTH_SMS;
 	}
 	return pos_sms_rx;
 }

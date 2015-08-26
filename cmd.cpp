@@ -3,6 +3,7 @@
  *
  *  Created on: Apr 15, 2013
  *      Author: popai
+ *  Modify on Aug 26, 2015
  */
 #include "Arduino.h"
 #include "cmd.h"
@@ -46,15 +47,15 @@ const prog_char STARE_ALL[] PROGMEM = "STARE ALL";	//adresa 18*24
 
 // The table to refer to my strings.
 const char *comenzi[]PROGMEM =
-{ IN1, IN2, IN3, OUT1L, OUT1H, OUT2L, OUT2H, OUT3L, OUT3H, OUT4L, OUT4H,
-		OUT5L, OUT5H, OUT6L, OUT6H, TMP1, TMP2, TMP3, LOGIN };
+{ IN1, IN2, IN3, OUT1L, OUT1H, OUT2L, OUT2H, OUT3L, OUT3H, OUT4L, OUT4H, OUT5L,
+		OUT5H, OUT6L, OUT6H, TMP1, TMP2, TMP3, LOGIN };
 
 //int8_t in1 = 1, in2 = 1, in3 = 1, in4 = 1;
 bool in1 = true;
 bool in2 = true;
 bool in3 = true;
 bool in4 = true;
-uint8_t pin_state = 0b00000000;
+
 //write data on eeprom
 int8_t CfgCmd(char *inbuffer)
 {
@@ -115,6 +116,7 @@ void Comand(char *nrtel, char *inmsg)
 {
 	char buffer[24];
 	char OK[3] = "OK";
+	uint8_t pin_state = 0b00000000;
 
 	ReadEprom(buffer, 18 * 6);
 	if (strcasecmp(buffer, inmsg) == 0)
@@ -276,10 +278,15 @@ void Comand(char *nrtel, char *inmsg)
 	gsm.SendSMS(nrtel, buffer);
 	return;
 
-
 }
 
-//write the sms string for commands
+/**
+ * @brief : write the sms string for commands
+ *
+ * @param : char *nrtel -> sms sender phone number
+ * 			char *inmsg -> sms message
+ * @return: no return
+ */
 void Config(char *nrtel, char *inmsg)
 {
 	char buffer[18];
@@ -329,13 +336,18 @@ void Config(char *nrtel, char *inmsg)
 		}
 		else
 		{
-			ReadEprom(buffer, 18);
-			if (strcmp(nrtel, buffer) == 0)
-				CfgCmd(inmsg);
+			CfgCmd(inmsg);
 		}
 	}
 }
 
+
+/**
+ * @brief :	Send a sms with state of out pins
+ *
+ * @param : char *nrtel = phone number who interrogate the state
+ * @return: no return
+ */
 void StareOUT(char *nrtel)
 {
 	char mesage[120];
@@ -470,6 +482,13 @@ float Thermistor(int Tpin)
 	return T;
 }
 
+
+/**
+ * @brief : Send a sms with temperature read from senzors
+ *
+ * @param : char *nrtel = phone number who interrogate the state
+ * @return: no return
+ */
 void StareTMP(char *nrtel)
 {
 	char mesage[120];
@@ -507,6 +526,12 @@ void StareTMP(char *nrtel)
 
 }
 
+/**
+ * @brief : Verify the state of input pins
+ *
+ * @param : no parameters
+ * @return: no return
+ */
 void VerificIN()
 {
 	//char mesage[80];
@@ -574,3 +599,16 @@ void VerificIN()
 
 }
 
+/**
+ * XXX de verificat daca merge
+ * @brief : In case of reset out/in don't lose state
+ *
+ * @param : no parameters
+ * @return: no return
+ */
+void SetPort()
+{
+	uint8_t pin_state = 0b00000000;
+	pin_state = eeprom_read_byte((const uint8_t *)379);
+	PORTD |= pin_state;
+}

@@ -3,6 +3,7 @@
  *
  *  Created on: Apr 15, 2013
  *      Author: popai
+ *  Modify on Aug 26, 2015
  */
 
 #ifndef CMD_H_
@@ -18,5 +19,6 @@ float Thermistor(int RawADC);
 void StareOUT(char *nrtel);
 void StareTMP(char *nrtel);
 void VerificIN();
+void SetPort();
 
 #endif /* CMD_H_ */
