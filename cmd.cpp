@@ -276,43 +276,7 @@ void Comand(char *nrtel, char *inmsg)
 	gsm.SendSMS(nrtel, buffer);
 	return;
 
-	/*
-	 //Check if receive a pas
-	 ReadEprom(buffer, 18 * 19);
-	 if (strcmp(buffer, inmsg) == 0)
-	 {
-	 uint8_t nr_pfonnr;
-	 nr_pfonnr = eeprom_read_byte((const uint8_t *) 18);
 
-	 if (nr_pfonnr < 6)
-	 {
-	 error = gsm.WritePhoneNumber(nr_pfonnr, nrtel);
-	 if (error != 0)
-	 {
-	 sprintf_P(buffer,
-	 PSTR("Number %s writed in Phone Book position %c"),
-	 number, nr_pfonnr);
-	 Serial.println(buffer);
-	 ++nr_pfonnr;
-	 eeprom_write_byte((uint8_t *) 18, nr_pfonnr);
-	 strcpy_P(buffer, LOGIN);
-	 gsm.SendSMS(nrtel, buffer);
-
-	 }
-	 else
-	 {
-	 strcpy_P(buffer, PSTR("Writing error"));
-	 Serial.println(buffer);
-	 gsm.SendSMS(nrtel, buffer);
-	 }
-	 }
-	 else
-	 {
-	 strcpy_P(buffer, PSTR("No free slot"));
-	 gsm.SendSMS(nrtel, buffer);
-	 }
-	 }
-	 */
 }
 
 //write the sms string for commands
