@@ -7,6 +7,8 @@
 
 #include "gsmControl.h"
 #include <MyGSM.h>
+#include <EEPROM.h>
+#include <avr/eeprom.h>
 
 #include "cmd.h"
 #include "pinDef.h"
@@ -17,6 +19,7 @@
 //**************************************************************************
 
 extern GSM gsm;		//gsm handler class define in cmd.h
+
 char sms_rx[122];   //Received text SMS
 char number[20];	//sender phone number
 
@@ -43,6 +46,8 @@ void setup()
 	delay(100);
 	Serial.println("system startup");
 
+	strcpy_P(sms_rx, PSTR("Comanda ne scrisa"));
+	EEPROM.update((int)255, (uint8_t)sms_rx);
 	//startup gsm module
 	uint8_t tri = 0;
 	while ((error == 0) && (tri < 3))  	//Check status
@@ -120,13 +125,14 @@ void loop()
 		{
 			//Check if receive a pas
 			char buffer[24];
-			ReadEprom(buffer, 18 * 19);		//XXX de verificat adresa corecta, era 18*21 ???
+			ReadEprom(buffer, 18 * 21);
 			if (strcmp(buffer, sms_rx) == 0)
 			{
 				uint8_t nr_pfonnr;
 				nr_pfonnr = eeprom_read_byte((const uint8_t *) 18);
 
-				if (nr_pfonnr < 6)
+				//write number on sim
+				if (nr_pfonnr < 6) //max 6 number
 				{
 					error = gsm.WritePhoneNumber(nr_pfonnr, number);
 					if (error != 0)
@@ -137,7 +143,7 @@ void loop()
 						Serial.println(buffer);
 						++nr_pfonnr;
 						eeprom_write_byte((uint8_t *) 18, nr_pfonnr);
-						strcpy_P(buffer, "Acceptat");
+						strcpy_P(buffer, PSTR("Acceptat"));
 						gsm.SendSMS(number, buffer);
 
 					}

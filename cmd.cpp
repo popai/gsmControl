@@ -19,40 +19,42 @@
 GSM gsm;			//gsm handler class
 
 //"Flash store comands etc are strings to store
-const prog_char IN1[] PROGMEM = "IN1";		//adresa 18*2
-const prog_char IN2[] PROGMEM = "IN2";		//adresa 18*3
-const prog_char IN3[] PROGMEM = "IN3";		//adresa 18*4
-const prog_char IN4[] PROGMEM = "IN4";		//adresa 18*5
+//const prog_char IN4[] PROGMEM = "IN4";		//adresa 18*2
+const prog_char IN1[] PROGMEM = "IN1";		//adresa 18*3
+const prog_char IN2[] PROGMEM = "IN2";		//adresa 18*4
+const prog_char IN3[] PROGMEM = "IN3";		//adresa 18*5
 const prog_char OUT1L[] PROGMEM = "OUT1L";		//adresa 18*6
 const prog_char OUT1H[] PROGMEM = "OUT1H";		//adresa 18*7
 const prog_char OUT2L[] PROGMEM = "OUT2L";		//adresa 18*8
 const prog_char OUT2H[] PROGMEM = "OUT2H";		//adresa 18*9
 const prog_char OUT3L[] PROGMEM = "OUT3L";		//adresa 18*10
 const prog_char OUT3H[] PROGMEM = "OUT3H";		//adresa 18*11
-const prog_char OUT4L[] PROGMEM = "OUT4L";	//adresa 18*12
-const prog_char OUT4H[] PROGMEM = "OUT4H";	//adresa 18*13
-const prog_char OUT5L[] PROGMEM = "OUT5L";	//adresa 18*14
-const prog_char OUT5H[] PROGMEM = "OUT5H";	//adresa 18*15
-const prog_char TMP1[] PROGMEM = "TMP1";		//adresa 18*16
-const prog_char TMP2[] PROGMEM = "TMP2";		//adresa 18*17
-const prog_char TMP3[] PROGMEM = "TMP3";		//adresa 18*18
-const prog_char LOGIN[] PROGMEM = "LOGIN";	//adresa 18*19
-const prog_char STARE_OUT[] PROGMEM = "STARE OUT";	//adresa 18*20
-const prog_char STARE_TMP[] PROGMEM = "STARE TMP";	//adresa 18*21
-const prog_char STARE_ALL[] PROGMEM = "STARE ALL";	//adresa 18*22
+const prog_char OUT4L[] PROGMEM = "OUT4L";		//adresa 18*12
+const prog_char OUT4H[] PROGMEM = "OUT4H";		//adresa 18*13
+const prog_char OUT5L[] PROGMEM = "OUT5L";		//adresa 18*14
+const prog_char OUT5H[] PROGMEM = "OUT5H";		//adresa 18*15
+const prog_char OUT6L[] PROGMEM = "OUT6L";		//adresa 18*16
+const prog_char OUT6H[] PROGMEM = "OUT6H";		//adresa 18*17
+const prog_char TMP1[] PROGMEM = "TMP1";		//adresa 18*18
+const prog_char TMP2[] PROGMEM = "TMP2";		//adresa 18*19
+const prog_char TMP3[] PROGMEM = "TMP3";		//adresa 18*20
+const prog_char LOGIN[] PROGMEM = "LOGIN";		//adresa 18*21
+const prog_char STARE_OUT[] PROGMEM = "STARE OUT";	//adresa 18*22
+const prog_char STARE_TMP[] PROGMEM = "STARE TMP";	//adresa 18*23
+const prog_char STARE_ALL[] PROGMEM = "STARE ALL";	//adresa 18*24
 //const prog_char OK[] PROGMEM = "OK";	//adresa 18*22
 
 // The table to refer to my strings.
 const char *comenzi[]PROGMEM =
-{ IN1, IN2, IN3, IN4, OUT1L, OUT1H, OUT2L, OUT2H, OUT3L, OUT3H, OUT4L, OUT4H,
-		OUT5L, OUT5H, TMP1, TMP2, TMP3, LOGIN };
+{ IN1, IN2, IN3, OUT1L, OUT1H, OUT2L, OUT2H, OUT3L, OUT3H, OUT4L, OUT4H,
+		OUT5L, OUT5H, OUT6L, OUT6H, TMP1, TMP2, TMP3, LOGIN };
 
 //int8_t in1 = 1, in2 = 1, in3 = 1, in4 = 1;
 bool in1 = true;
 bool in2 = true;
 bool in3 = true;
 bool in4 = true;
-
+uint8_t pin_state = 0b00000000;
 //write data on eeprom
 int8_t CfgCmd(char *inbuffer)
 {
@@ -115,13 +117,12 @@ void Comand(char *nrtel, char *inmsg)
 	char OK[3] = "OK";
 
 	ReadEprom(buffer, 18 * 6);
-	//Serial.println(strcasecmp(buffer, inmsg));
-	//if (strstr(inmsg,buffer) != 0)
 	if (strcasecmp(buffer, inmsg) == 0)
 	{
 		//digitalWrite(outD1, LOW);
 		PORTD &= ~(1 << PIND2);
-		eeprom_write_byte((uint8_t*) 379, 0);
+		pin_state &= ~(1 << PIND2);
+		eeprom_write_byte((uint8_t*) 379, pin_state);
 		gsm.SendSMS(nrtel, OK);
 		return;
 	}
@@ -131,7 +132,8 @@ void Comand(char *nrtel, char *inmsg)
 	{
 		//digitalWrite(outD1, HIGH);
 		PORTD |= (1 << PIND2);
-		eeprom_write_byte((uint8_t*) 379, 1);
+		pin_state |= (1 << PIND2);
+		eeprom_write_byte((uint8_t*) 379, pin_state);
 		gsm.SendSMS(nrtel, OK);
 		return;
 	}
@@ -141,7 +143,8 @@ void Comand(char *nrtel, char *inmsg)
 	{
 		//digitalWrite(outD2, LOW);
 		PORTD &= ~(1 << PIND3);
-		eeprom_write_byte((uint8_t*) 380, 0);
+		pin_state |= (1 << PIND3);
+		eeprom_write_byte((uint8_t*) 379, pin_state);
 		gsm.SendSMS(nrtel, OK);
 		return;
 	}
@@ -151,7 +154,8 @@ void Comand(char *nrtel, char *inmsg)
 	{
 		//digitalWrite(outD2, HIGH);
 		PORTD |= (1 << PIND3);
-		eeprom_write_byte((uint8_t*) 380, 1);
+		pin_state |= (1 << PIND3);
+		eeprom_write_byte((uint8_t*) 379, pin_state);
 		gsm.SendSMS(nrtel, OK);
 		return;
 	}
@@ -161,7 +165,8 @@ void Comand(char *nrtel, char *inmsg)
 	{
 		//digitalWrite(outD3, LOW);
 		PORTD &= ~(1 << PIND4);
-		eeprom_write_byte((uint8_t*) 381, 0);
+		pin_state |= (1 << PIND4);
+		eeprom_write_byte((uint8_t*) 379, pin_state);
 		gsm.SendSMS(nrtel, OK);
 		return;
 	}
@@ -171,7 +176,8 @@ void Comand(char *nrtel, char *inmsg)
 	{
 		//digitalWrite(outD3, HIGH);
 		PORTD |= (1 << PIND4);
-		eeprom_write_byte((uint8_t*) 381, 1);
+		pin_state |= (1 << PIND4);
+		eeprom_write_byte((uint8_t*) 379, pin_state);
 		gsm.SendSMS(nrtel, OK);
 		return;
 	}
@@ -181,7 +187,8 @@ void Comand(char *nrtel, char *inmsg)
 	{
 		//digitalWrite(outD4, LOW);
 		PORTD &= ~(1 << PIND5);
-		eeprom_write_byte((uint8_t*) 382, 0);
+		pin_state |= (1 << PIND5);
+		eeprom_write_byte((uint8_t*) 379, pin_state);
 		gsm.SendSMS(nrtel, OK);
 		return;
 	}
@@ -191,7 +198,8 @@ void Comand(char *nrtel, char *inmsg)
 	{
 		//digitalWrite(outD4, HIGH);
 		PORTD |= (1 << PIND5);
-		eeprom_write_byte((uint8_t*) 382, 1);
+		pin_state |= (1 << PIND5);
+		eeprom_write_byte((uint8_t*) 379, pin_state);
 		gsm.SendSMS(nrtel, OK);
 		return;
 	}
@@ -201,7 +209,8 @@ void Comand(char *nrtel, char *inmsg)
 	{
 		//digitalWrite(outD5, LOW);
 		PORTD &= ~(1 << PIND6);
-		eeprom_write_byte((uint8_t*) 383, 0);
+		pin_state |= (1 << PIND6);
+		eeprom_write_byte((uint8_t*) 379, pin_state);
 		gsm.SendSMS(nrtel, OK);
 		return;
 	}
@@ -211,7 +220,8 @@ void Comand(char *nrtel, char *inmsg)
 	{
 		//digitalWrite(outD5, HIGH);
 		PORTD |= (1 << PIND6);
-		eeprom_write_byte((uint8_t*) 383, 1);
+		pin_state |= (1 << PIND6);
+		eeprom_write_byte((uint8_t*) 379, pin_state);
 		gsm.SendSMS(nrtel, OK);
 		return;
 	}
@@ -221,7 +231,8 @@ void Comand(char *nrtel, char *inmsg)
 	{
 		//digitalWrite(outD5, LOW);
 		PORTD &= ~(1 << PIND7);
-		eeprom_write_byte((uint8_t*) 384, 0);
+		pin_state |= (1 << PIND7);
+		eeprom_write_byte((uint8_t*) 379, pin_state);
 		gsm.SendSMS(nrtel, OK);
 		return;
 	}
@@ -231,7 +242,8 @@ void Comand(char *nrtel, char *inmsg)
 	{
 		//digitalWrite(outD5, HIGH);
 		PORTD |= (1 << PIND7);
-		eeprom_write_byte((uint8_t*) 384, 1);
+		pin_state |= (1 << PIND7);
+		eeprom_write_byte((uint8_t*) 379, pin_state);
 		gsm.SendSMS(nrtel, OK);
 		return;
 	}
@@ -264,43 +276,43 @@ void Comand(char *nrtel, char *inmsg)
 	gsm.SendSMS(nrtel, buffer);
 	return;
 
-/*
-	//Check if receive a pas
-	ReadEprom(buffer, 18 * 19);		//XXX de verificat adresa corecta, era 18*21 ???
-	if (strcmp(buffer, inmsg) == 0)
-	{
-		uint8_t nr_pfonnr;
-		nr_pfonnr = eeprom_read_byte((const uint8_t *) 18);
+	/*
+	 //Check if receive a pas
+	 ReadEprom(buffer, 18 * 19);
+	 if (strcmp(buffer, inmsg) == 0)
+	 {
+	 uint8_t nr_pfonnr;
+	 nr_pfonnr = eeprom_read_byte((const uint8_t *) 18);
 
-		if (nr_pfonnr < 6)
-		{
-			error = gsm.WritePhoneNumber(nr_pfonnr, nrtel);
-			if (error != 0)
-			{
-				sprintf_P(buffer,
-						PSTR("Number %s writed in Phone Book position %c"),
-						number, nr_pfonnr);
-				Serial.println(buffer);
-				++nr_pfonnr;
-				eeprom_write_byte((uint8_t *) 18, nr_pfonnr);
-				strcpy_P(buffer, LOGIN);
-				gsm.SendSMS(nrtel, buffer);
+	 if (nr_pfonnr < 6)
+	 {
+	 error = gsm.WritePhoneNumber(nr_pfonnr, nrtel);
+	 if (error != 0)
+	 {
+	 sprintf_P(buffer,
+	 PSTR("Number %s writed in Phone Book position %c"),
+	 number, nr_pfonnr);
+	 Serial.println(buffer);
+	 ++nr_pfonnr;
+	 eeprom_write_byte((uint8_t *) 18, nr_pfonnr);
+	 strcpy_P(buffer, LOGIN);
+	 gsm.SendSMS(nrtel, buffer);
 
-			}
-			else
-			{
-				strcpy_P(buffer, PSTR("Writing error"));
-				Serial.println(buffer);
-				gsm.SendSMS(nrtel, buffer);
-			}
-		}
-		else
-		{
-			strcpy_P(buffer, PSTR("No free slot"));
-			gsm.SendSMS(nrtel, buffer);
-		}
-	}
-*/
+	 }
+	 else
+	 {
+	 strcpy_P(buffer, PSTR("Writing error"));
+	 Serial.println(buffer);
+	 gsm.SendSMS(nrtel, buffer);
+	 }
+	 }
+	 else
+	 {
+	 strcpy_P(buffer, PSTR("No free slot"));
+	 gsm.SendSMS(nrtel, buffer);
+	 }
+	 }
+	 */
 }
 
 //write the sms string for commands
@@ -314,7 +326,40 @@ void Config(char *nrtel, char *inmsg)
 		//strcpy_P(buffer, (char*) pgm_read_word(&(comenzi[17])));
 		if (strstr_P(inmsg, LOGIN) != 0)
 		{
-			eeprom_write_block(nrtel, (int*) adr, 18);
+			//eeprom_write_block(nrtel, (int*) adr, 18);
+
+			uint8_t nr_pfonnr;
+			int error;
+			nr_pfonnr = eeprom_read_byte((const uint8_t *) 18);
+
+			if (nr_pfonnr < 6)
+			{
+				error = gsm.WritePhoneNumber(nr_pfonnr, nrtel);
+				if (error != 0)
+				{
+					sprintf_P(buffer,
+							PSTR("Number %s writed in Phone Book position %c"),
+							nrtel, nr_pfonnr);
+					Serial.println(buffer);
+					++nr_pfonnr;
+					eeprom_write_byte((uint8_t *) 18, nr_pfonnr);
+					strcpy_P(buffer, PSTR("Acceptat"));
+					gsm.SendSMS(nrtel, buffer);
+
+				}
+				else
+				{
+					strcpy_P(buffer, PSTR("Writing error"));
+					Serial.println(buffer);
+					gsm.SendSMS(nrtel, buffer);
+				}
+			}
+			else
+			{
+				strcpy_P(buffer, PSTR("No free slot"));
+				gsm.SendSMS(nrtel, buffer);
+			}
+
 			CfgCmd(inmsg);
 
 		}
@@ -495,22 +540,6 @@ void StareTMP(char *nrtel)
 		sprintf(tmpe, " %s: %d %s", buffer, tmp, "C\r\n");
 		strcat(mesage, tmpe);
 	}
-
-	tmp = Thermistor(PINC2);
-	delay(10);
-	tmp1 = Thermistor(PINC2);
-	delay(10);
-	tmp2 = Thermistor(PINC2);
-	tmp = (tmp + tmp1 + tmp2) / 3;
-
-	ReadEprom(buffer, 18 * 18);
-	if (strlen(buffer) != 0)
-	{
-		sprintf(tmpe, " %s: %d %c", buffer, tmp, 'C');
-		strcat(mesage, tmpe);
-	}
-	if (strlen(mesage) != 0)
-		gsm.SendSMS(nrtel, mesage);
 
 }
 
