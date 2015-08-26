@@ -7,7 +7,6 @@
 
 #include "gsmControl.h"
 #include <MyGSM.h>
-#include <EEPROM.h>
 #include <avr/eeprom.h>
 
 #include "cmd.h"
@@ -47,7 +46,7 @@ void setup()
 	Serial.println("system startup");
 
 	strcpy_P(sms_rx, PSTR("Comanda ne scrisa"));
-	EEPROM.update((int)255, (uint8_t)sms_rx);
+
 	//startup gsm module
 	uint8_t tri = 0;
 	while ((error == 0) && (tri < 3))  	//Check status
