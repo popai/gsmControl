@@ -64,14 +64,14 @@ int8_t CfgCmd(char *inbuffer)
 	char comanda[7];
 	int8_t i;
 
-	for (i = 0; i < 18; ++i)
+	for (i = 0; i < 21; ++i)
 	{
 		strcpy_P(comanda, (char*) pgm_read_word(&(comenzi[i]))); // Necessary casts and dereferencing, just copy.
 		if (strstr(inbuffer, comanda) != 0)
 		{
 
 			inbuffer += strlen(comanda) + 1;
-			adresa = 18 * (2 + i);
+			adresa = 18 * (3 + i);
 //#if DEBUG
 			//Serial.print("Scriu la adresa ");
 			Serial.print(adresa);
@@ -119,12 +119,18 @@ void Comand(char *nrtel, char *inmsg)
 	uint8_t pin_state = 0b00000000;
 
 	ReadEprom(buffer, 18 * 6);
+	Serial.println(buffer);
+	Serial.println(strlen(buffer));
+	Serial.println(inmsg);
+	Serial.println(strlen(inmsg));
+	byte tmp = strcasecmp(buffer, inmsg);
+	Serial.println(tmp);
 	if (strcasecmp(buffer, inmsg) == 0)
 	{
 		//digitalWrite(outD1, LOW);
 		PORTD &= ~(1 << PIND2);
 		pin_state &= ~(1 << PIND2);
-		eeprom_write_byte((uint8_t*) 379, pin_state);
+		eeprom_write_byte((uint8_t*) 396, pin_state);
 		gsm.SendSMS(nrtel, OK);
 		return;
 	}
@@ -135,7 +141,7 @@ void Comand(char *nrtel, char *inmsg)
 		//digitalWrite(outD1, HIGH);
 		PORTD |= (1 << PIND2);
 		pin_state |= (1 << PIND2);
-		eeprom_write_byte((uint8_t*) 379, pin_state);
+		eeprom_write_byte((uint8_t*) 396, pin_state);
 		gsm.SendSMS(nrtel, OK);
 		return;
 	}
@@ -146,7 +152,7 @@ void Comand(char *nrtel, char *inmsg)
 		//digitalWrite(outD2, LOW);
 		PORTD &= ~(1 << PIND3);
 		pin_state |= (1 << PIND3);
-		eeprom_write_byte((uint8_t*) 379, pin_state);
+		eeprom_write_byte((uint8_t*) 396, pin_state);
 		gsm.SendSMS(nrtel, OK);
 		return;
 	}
@@ -157,7 +163,7 @@ void Comand(char *nrtel, char *inmsg)
 		//digitalWrite(outD2, HIGH);
 		PORTD |= (1 << PIND3);
 		pin_state |= (1 << PIND3);
-		eeprom_write_byte((uint8_t*) 379, pin_state);
+		eeprom_write_byte((uint8_t*) 396, pin_state);
 		gsm.SendSMS(nrtel, OK);
 		return;
 	}
@@ -168,7 +174,7 @@ void Comand(char *nrtel, char *inmsg)
 		//digitalWrite(outD3, LOW);
 		PORTD &= ~(1 << PIND4);
 		pin_state |= (1 << PIND4);
-		eeprom_write_byte((uint8_t*) 379, pin_state);
+		eeprom_write_byte((uint8_t*) 396, pin_state);
 		gsm.SendSMS(nrtel, OK);
 		return;
 	}
@@ -179,7 +185,7 @@ void Comand(char *nrtel, char *inmsg)
 		//digitalWrite(outD3, HIGH);
 		PORTD |= (1 << PIND4);
 		pin_state |= (1 << PIND4);
-		eeprom_write_byte((uint8_t*) 379, pin_state);
+		eeprom_write_byte((uint8_t*) 396, pin_state);
 		gsm.SendSMS(nrtel, OK);
 		return;
 	}
@@ -190,7 +196,7 @@ void Comand(char *nrtel, char *inmsg)
 		//digitalWrite(outD4, LOW);
 		PORTD &= ~(1 << PIND5);
 		pin_state |= (1 << PIND5);
-		eeprom_write_byte((uint8_t*) 379, pin_state);
+		eeprom_write_byte((uint8_t*) 396, pin_state);
 		gsm.SendSMS(nrtel, OK);
 		return;
 	}
@@ -201,7 +207,7 @@ void Comand(char *nrtel, char *inmsg)
 		//digitalWrite(outD4, HIGH);
 		PORTD |= (1 << PIND5);
 		pin_state |= (1 << PIND5);
-		eeprom_write_byte((uint8_t*) 379, pin_state);
+		eeprom_write_byte((uint8_t*) 396, pin_state);
 		gsm.SendSMS(nrtel, OK);
 		return;
 	}
@@ -212,7 +218,7 @@ void Comand(char *nrtel, char *inmsg)
 		//digitalWrite(outD5, LOW);
 		PORTD &= ~(1 << PIND6);
 		pin_state |= (1 << PIND6);
-		eeprom_write_byte((uint8_t*) 379, pin_state);
+		eeprom_write_byte((uint8_t*) 396, pin_state);
 		gsm.SendSMS(nrtel, OK);
 		return;
 	}
@@ -223,7 +229,7 @@ void Comand(char *nrtel, char *inmsg)
 		//digitalWrite(outD5, HIGH);
 		PORTD |= (1 << PIND6);
 		pin_state |= (1 << PIND6);
-		eeprom_write_byte((uint8_t*) 379, pin_state);
+		eeprom_write_byte((uint8_t*) 396, pin_state);
 		gsm.SendSMS(nrtel, OK);
 		return;
 	}
@@ -234,7 +240,7 @@ void Comand(char *nrtel, char *inmsg)
 		//digitalWrite(outD5, LOW);
 		PORTD &= ~(1 << PIND7);
 		pin_state |= (1 << PIND7);
-		eeprom_write_byte((uint8_t*) 379, pin_state);
+		eeprom_write_byte((uint8_t*) 396, pin_state);
 		gsm.SendSMS(nrtel, OK);
 		return;
 	}
@@ -245,7 +251,7 @@ void Comand(char *nrtel, char *inmsg)
 		//digitalWrite(outD5, HIGH);
 		PORTD |= (1 << PIND7);
 		pin_state |= (1 << PIND7);
-		eeprom_write_byte((uint8_t*) 379, pin_state);
+		eeprom_write_byte((uint8_t*) 396, pin_state);
 		gsm.SendSMS(nrtel, OK);
 		return;
 	}
@@ -275,7 +281,8 @@ void Comand(char *nrtel, char *inmsg)
 	}
 
 	ReadEprom(buffer, 486);
-	gsm.SendSMS(nrtel, buffer);
+	//gsm.SendSMS(nrtel, buffer);
+	Serial.println("comanda ne scrisa");
 	return;
 
 }
@@ -289,7 +296,7 @@ void Comand(char *nrtel, char *inmsg)
  */
 void Config(char *nrtel, char *inmsg)
 {
-	char buffer[18];
+	char buffer[64];
 	int adr = 18;
 	if ((strlen(nrtel) != 0) && (strlen(inmsg) != 0))
 	{
@@ -527,6 +534,7 @@ void StareTMP(char *nrtel)
 }
 
 /**
+ * TODO de schimbat logica de trimis smsul
  * @brief : Verify the state of input pins
  *
  * @param : no parameters
@@ -609,6 +617,7 @@ void VerificIN()
 void SetPort()
 {
 	uint8_t pin_state = 0b00000000;
-	pin_state = eeprom_read_byte((const uint8_t *)379);
+	pin_state = eeprom_read_byte((const uint8_t *)396);
+	//Serial.println(pin_state);
 	PORTD |= pin_state;
 }

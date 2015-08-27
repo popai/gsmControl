@@ -62,7 +62,7 @@ void pinSetUp()
 	 * PC2, PC3 digital software serial Rx and Tx
 	 * PC4, PC5 digital IN, delete EEPROM and Config mode
 	 */
-	DDRC =  0b00001000;
-	PORTC = 0b00110100;
+	DDRC =  0b00010000;
+	PORTC = 0b00101100;
 }
 

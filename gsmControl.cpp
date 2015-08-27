@@ -20,9 +20,10 @@
 extern GSM gsm;		//gsm handler class define in cmd.h
 
 char sms_rx[122];   //Received text SMS
+//String sms_rx;
 char number[20];	//sender phone number
 
-int error;			//error from function
+int error = 0;			//error from function
 
 bool config = false, delEEPROM = false;	//define state of controller
 
@@ -45,7 +46,7 @@ void setup()
 	delay(100);
 	Serial.println("system startup");
 
-	SetPort();
+	//SetPort();
 
 	eeprom_read_block(sms_rx, (int*) 486, 24);
 	if (strlen(sms_rx) == 0)
@@ -56,23 +57,28 @@ void setup()
 	}
 	//startup gsm module
 	uint8_t tri = 0;
-	while ((error != REG_REGISTERED) && (tri < 3))  	//Check status
+	while ((error != 1) && (tri < 3))  	//Check status
+	//while ((error == 0) && (tri < 3) )  //Check status
 	{
 		gsm.TurnOn(9600);          		//module power on
-		//gsm.InitParam(PARAM_SET_1);		//configure the module
+		gsm.InitParam(PARAM_SET_1);		//configure the module
 		gsm.Echo(0); 				 	//enable/disable AT echo
 		error = gsm.CheckRegistration(); //XXX de verificat metoda
+		//error=gsm.SendSMS("+40745183841","Modul ON");
 		++tri;
 	}
-	if (error == 0)
+	//if (error == REG_NOT_REGISTERED || error == REG_NO_RESPONSE)
+	if(error != 1)
 		Serial.println("GSM init error");
-
+	else Serial.println("GSM OK");
+/*
 	//if (digitalRead(jp2) == LOW)
 	if ((PINC & (1 << PINC4)) == 0)
 	{
 		delEEPROM = true;
 		DellEprom();
 	}
+	*/
 	//if (digitalRead(jp3) == LOW)
 	if ((PINC & (1 << PINC5)) == 0)
 	{
@@ -98,10 +104,10 @@ void loop()
 				sms_rx[i] = (Serial.read()); //read data
 				i++;
 			}
-			sms_rx[i] = '\0';
+			sms_rx[i-1] = 0;
 
-			delay(100);
-
+			delay(5);
+			//Serial.println(sms_rx);
 			if (strstr_P(sms_rx, PSTR("citeste")) != 0)
 			{
 				for (int i = 0; i <= 512; i += 18)
@@ -125,12 +131,13 @@ void loop()
 	{
 		VerificIN();
 		id = Check_SMS();
+
 		if (id == GETSMS_AUTH_SMS)
 			Comand(number, sms_rx);
 		else if (id == GETSMS_NOT_AUTH_SMS)
 		{
 			//Check if receive a pas
-			char buffer[24];
+			char buffer[64];
 			ReadEprom(buffer, 18 * 21);
 			if (strcmp(buffer, sms_rx) == 0)
 			{
@@ -172,7 +179,7 @@ void loop()
 		*sms_rx = 0x00;
 		id = 0;
 	}
-	delay(1000);
+	delay(100);
 
 }
 
@@ -182,23 +189,23 @@ void loop()
  * @param : no parameters
  * @return: Received SMS position
  */
-
 byte Check_SMS()
 {
-	char str[32];
+	char str[200];
 	byte pos_sms_rx = -1;  //Received SMS position
-	pos_sms_rx = gsm.IsSMSPresent(SMS_UNREAD);
-	if (pos_sms_rx > 0)
+	pos_sms_rx = gsm.IsSMSPresent(SMS_ALL);
+	//Serial.println(pos_sms_rx);
+	if (pos_sms_rx != 0)
 	{
 		//Read text/number/position of sms
 		//gsm.GetSMS(pos_sms_rx, number, sms_rx, 120);
-		error = gsm.GetAuthorizedSMS(pos_sms_rx, number, sms_rx, 122, 1, 6);
+		error = gsm.GetAuthorizedSMS(pos_sms_rx, number, sms_rx, 122, 49, 55);
 		if (error == GETSMS_AUTH_SMS)
+		//if(error > 0)
 		{
-			sprintf_P(str, PSTR("Received SMS from %d (sim position: %d)"),
-					number, pos_sms_rx);
+			sprintf_P(str, PSTR("Received SMS from %s (sim position: %d):%s"),number, pos_sms_rx, sms_rx);
 			Serial.println(str);
-			Serial.println(sms_rx);
+			//Serial.println(sms_rx);
 			error = gsm.DeleteSMS(pos_sms_rx);
 			if (error == 1)
 			{
@@ -212,8 +219,25 @@ byte Check_SMS()
 			}
 			return GETSMS_AUTH_SMS;
 		}
-		else
+		else //if (error == GETSMS_NOT_AUTH_SMS)
+		{
+			sprintf_P(str, PSTR("Received SMS from %s (sim position: %d):%s"),number, pos_sms_rx, sms_rx);
+			Serial.println(str);
+
+			error = gsm.DeleteSMS(pos_sms_rx);
+			if (error == 1)
+			{
+				strcpy_P(str, PSTR("SMS deleted"));
+				Serial.println(str);
+			}
+			else
+			{
+				strcpy_P(str, PSTR("SMS not deleted"));
+				Serial.println(str);
+			}
 			return GETSMS_NOT_AUTH_SMS;
+		}
+
 	}
 	return pos_sms_rx;
 }
