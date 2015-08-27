@@ -18,6 +18,7 @@
 //#include <math.h>
 
 GSM gsm;			//gsm handler class
+extern uint8_t nr_pfonnr;
 
 //"Flash store comands etc are strings to store
 //const prog_char IN4[] PROGMEM = "IN4";		//adresa 18*2
@@ -64,7 +65,7 @@ int8_t CfgCmd(char *inbuffer)
 	char comanda[7];
 	int8_t i;
 
-	for (i = 0; i < 21; ++i)
+	for (i = 0; i < 18; ++i)
 	{
 		strcpy_P(comanda, (char*) pgm_read_word(&(comenzi[i]))); // Necessary casts and dereferencing, just copy.
 		if (strstr(inbuffer, comanda) != 0)
@@ -119,12 +120,6 @@ void Comand(char *nrtel, char *inmsg)
 	uint8_t pin_state = 0b00000000;
 
 	ReadEprom(buffer, 18 * 6);
-	Serial.println(buffer);
-	Serial.println(strlen(buffer));
-	Serial.println(inmsg);
-	Serial.println(strlen(inmsg));
-	byte tmp = strcasecmp(buffer, inmsg);
-	Serial.println(tmp);
 	if (strcasecmp(buffer, inmsg) == 0)
 	{
 		//digitalWrite(outD1, LOW);
@@ -305,14 +300,9 @@ void Config(char *nrtel, char *inmsg)
 		if (strstr_P(inmsg, LOGIN) != 0)
 		{
 			//eeprom_write_block(nrtel, (int*) adr, 18);
-
-			uint8_t nr_pfonnr;
-			int error;
-			nr_pfonnr = eeprom_read_byte((const uint8_t *) 18);
-
 			if (nr_pfonnr < 6)
 			{
-				error = gsm.WritePhoneNumber(nr_pfonnr, nrtel);
+				byte error = gsm.WritePhoneNumber(nr_pfonnr, nrtel);
 				if (error != 0)
 				{
 					sprintf_P(buffer,
@@ -320,7 +310,7 @@ void Config(char *nrtel, char *inmsg)
 							nrtel, nr_pfonnr);
 					Serial.println(buffer);
 					++nr_pfonnr;
-					eeprom_write_byte((uint8_t *) 18, nr_pfonnr);
+
 					strcpy_P(buffer, PSTR("Acceptat"));
 					gsm.SendSMS(nrtel, buffer);
 

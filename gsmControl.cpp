@@ -23,7 +23,8 @@ char sms_rx[122];   //Received text SMS
 //String sms_rx;
 char number[20];	//sender phone number
 
-int error = 0;			//error from function
+
+uint8_t nr_pfonnr = 1;
 
 bool config = false, delEEPROM = false;	//define state of controller
 
@@ -56,7 +57,8 @@ void setup()
 		strcpy_P(sms_rx, 0x00);
 	}
 	//startup gsm module
-	uint8_t tri = 0;
+	byte tri = 0;
+	byte error = 0;			//error from function
 	while ((error != 1) && (tri < 3))  	//Check status
 	//while ((error == 0) && (tri < 3) )  //Check status
 	{
@@ -68,17 +70,27 @@ void setup()
 		++tri;
 	}
 	//if (error == REG_NOT_REGISTERED || error == REG_NO_RESPONSE)
-	if(error != 1)
+	if (error != 1)
 		Serial.println("GSM init error");
-	else Serial.println("GSM OK");
-/*
-	//if (digitalRead(jp2) == LOW)
-	if ((PINC & (1 << PINC4)) == 0)
+	else
+		Serial.println("GSM OK");
+
+	for (byte i = 1; i < 7; i++)
 	{
-		delEEPROM = true;
-		DellEprom();
+		error = gsm.GetPhoneNumber(i, number);
+		if (error != 0)  //Find number in specified position
+			++nr_pfonnr;
+		else
+			break;
 	}
-	*/
+	/*
+	 //if (digitalRead(jp2) == LOW)
+	 if ((PINC & (1 << PINC4)) == 0)
+	 {
+	 delEEPROM = true;
+	 DellEprom();
+	 }
+	 */
 	//if (digitalRead(jp3) == LOW)
 	if ((PINC & (1 << PINC5)) == 0)
 	{
@@ -90,7 +102,8 @@ void setup()
 void loop()
 {
 // The loop function is called in an endless loop
-	int id;
+	byte id;
+	byte error = 0;			//error from function
 	byte i = 0;
 	if (delEEPROM)
 		return;
@@ -104,7 +117,7 @@ void loop()
 				sms_rx[i] = (Serial.read()); //read data
 				i++;
 			}
-			sms_rx[i-1] = 0;
+			sms_rx[i - 1] = 0;
 
 			delay(5);
 			//Serial.println(sms_rx);
@@ -141,17 +154,14 @@ void loop()
 			ReadEprom(buffer, 18 * 21);
 			if (strcmp(buffer, sms_rx) == 0)
 			{
-				uint8_t nr_pfonnr;
-				nr_pfonnr = eeprom_read_byte((const uint8_t *) 18);
-
 				//write number on sim
-				if (nr_pfonnr < 6) //max 6 number
+				if (nr_pfonnr < 7) //max 6 number
 				{
 					error = gsm.WritePhoneNumber(nr_pfonnr, number);
 					if (error != 0)
 					{
 						sprintf_P(buffer,
-								PSTR("Number %s writed in Phone Book position %c"),
+								PSTR("Number %s writed in Phone Book position %d"),
 								number, nr_pfonnr);
 						Serial.println(buffer);
 						++nr_pfonnr;
@@ -179,8 +189,10 @@ void loop()
 		*sms_rx = 0x00;
 		id = 0;
 	}
-	delay(100);
-
+	delay(50);
+	if(millis() % 10000)
+		//gsm.CheckRegistration();
+		gsm.TurnOn(9600);
 }
 
 /**
@@ -191,6 +203,7 @@ void loop()
  */
 byte Check_SMS()
 {
+	byte error = 0;			//error from function
 	char str[200];
 	byte pos_sms_rx = -1;  //Received SMS position
 	pos_sms_rx = gsm.IsSMSPresent(SMS_ALL);
@@ -203,7 +216,8 @@ byte Check_SMS()
 		if (error == GETSMS_AUTH_SMS)
 		//if(error > 0)
 		{
-			sprintf_P(str, PSTR("Received SMS from %s (sim position: %d):%s"),number, pos_sms_rx, sms_rx);
+			sprintf_P(str, PSTR("Received SMS from %s (sim position: %d):%s"),
+					number, pos_sms_rx, sms_rx);
 			Serial.println(str);
 			//Serial.println(sms_rx);
 			error = gsm.DeleteSMS(pos_sms_rx);
@@ -221,7 +235,8 @@ byte Check_SMS()
 		}
 		else //if (error == GETSMS_NOT_AUTH_SMS)
 		{
-			sprintf_P(str, PSTR("Received SMS from %s (sim position: %d):%s"),number, pos_sms_rx, sms_rx);
+			sprintf_P(str, PSTR("Received SMS from %s (sim position: %d):%s"),
+					number, pos_sms_rx, sms_rx);
 			Serial.println(str);
 
 			error = gsm.DeleteSMS(pos_sms_rx);
