@@ -119,12 +119,6 @@ void Comand(char *nrtel, char *inmsg)
 	uint8_t pin_state = 0b00000000;
 
 	ReadEprom(buffer, 18 * 6);
-	Serial.println(buffer);
-	Serial.println(strlen(buffer));
-	Serial.println(inmsg);
-	Serial.println(strlen(inmsg));
-	byte tmp = strcasecmp(buffer, inmsg);
-	Serial.println(tmp);
 	if (strcasecmp(buffer, inmsg) == 0)
 	{
 		//digitalWrite(outD1, LOW);

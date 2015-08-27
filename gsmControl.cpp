@@ -18,6 +18,7 @@
 //**************************************************************************
 
 extern GSM gsm;		//gsm handler class define in cmd.h
+//extern SoftwareSerial mySerial;  //rx, tx
 
 char sms_rx[122];   //Received text SMS
 //String sms_rx;
@@ -178,6 +179,7 @@ void loop()
 		*number = 0x00;
 		*sms_rx = 0x00;
 		id = 0;
+
 	}
 	delay(100);
 
