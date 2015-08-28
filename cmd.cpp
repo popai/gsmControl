@@ -57,7 +57,40 @@ bool in2 = true;
 bool in3 = true;
 bool in4 = true;
 
-//write data on eeprom
+
+//read data from eeprom on specified adres
+void ReadEprom(char* str_citit, int const adresa)
+{
+	//char str_citit[18];
+	eeprom_read_block(str_citit, (int*) adresa, 18);
+//#if DEBUG
+	//Serial.print("citesc la adresa: ");
+	Serial.print(adresa);
+	Serial.println(str_citit);
+//#endif
+	//return str_citit;
+}
+
+void DellEprom()
+{
+	int i;
+	for (i = 0; i < 512; i++)
+		eeprom_write_byte((uint8_t*) i, 0);
+}
+/*
+ void DellPass()
+ {
+ for (int i = 18 * 19; i < 18 * 20; i++)
+ EEPROM.update(i, 0);
+ }
+ */
+
+/**
+ * @brief : Write user defined commands on eeprom
+ *
+ * @param : char *inbuffer = command send by user
+ * @return: 0 = writed not succeed, 1 = succeed write
+ */
 int8_t CfgCmd(char *inbuffer)
 {
 	int adresa = 18;
@@ -87,32 +120,63 @@ int8_t CfgCmd(char *inbuffer)
 	return 0;
 }
 
-//read data from eeprom on specified adres
-void ReadEprom(char* str_citit, int const adresa)
+
+/**
+ * @brief : write the sms string for commands
+ *
+ * @param : char *nrtel -> sms sender phone number
+ * 			char *inmsg -> sms message
+ * @return: no return
+ */
+void Config(char *nrtel, char *inmsg)
 {
-	//char str_citit[18];
-	eeprom_read_block(str_citit, (int*) adresa, 18);
-//#if DEBUG
-	//Serial.print("citesc la adresa: ");
-	Serial.print(adresa);
-	Serial.println(str_citit);
-//#endif
-	//return str_citit;
+	char buffer[64];
+	int adr = 18;
+	if ((strlen(nrtel) != 0) && (strlen(inmsg) != 0))
+	{
+
+		//strcpy_P(buffer, (char*) pgm_read_word(&(comenzi[17])));
+		if (strstr_P(inmsg, LOGIN) != 0)
+		{
+			//eeprom_write_block(nrtel, (int*) adr, 18);
+			if (nr_pfonnr < 6)
+			{
+				byte error = gsm.WritePhoneNumber(nr_pfonnr, nrtel);
+				if (error != 0)
+				{
+					sprintf_P(buffer,
+							PSTR("Number %s writed in Phone Book position %c"),
+							nrtel, nr_pfonnr);
+					Serial.println(buffer);
+					++nr_pfonnr;
+
+					strcpy_P(buffer, PSTR("Acceptat"));
+					gsm.SendSMS(nrtel, buffer);
+
+				}
+				else
+				{
+					strcpy_P(buffer, PSTR("Writing error"));
+					Serial.println(buffer);
+					gsm.SendSMS(nrtel, buffer);
+				}
+			}
+			else
+			{
+				strcpy_P(buffer, PSTR("No free slot"));
+				gsm.SendSMS(nrtel, buffer);
+			}
+
+			CfgCmd(inmsg);
+
+		}
+		else
+		{
+			CfgCmd(inmsg);
+		}
+	}
 }
 
-void DellEprom()
-{
-	int i;
-	for (i = 0; i < 512; i++)
-		eeprom_write_byte((uint8_t*) i, 0);
-}
-/*
- void DellPass()
- {
- for (int i = 18 * 19; i < 18 * 20; i++)
- EEPROM.update(i, 0);
- }
- */
 void Comand(char *nrtel, char *inmsg)
 {
 	char buffer[24];
@@ -282,61 +346,6 @@ void Comand(char *nrtel, char *inmsg)
 
 }
 
-/**
- * @brief : write the sms string for commands
- *
- * @param : char *nrtel -> sms sender phone number
- * 			char *inmsg -> sms message
- * @return: no return
- */
-void Config(char *nrtel, char *inmsg)
-{
-	char buffer[64];
-	int adr = 18;
-	if ((strlen(nrtel) != 0) && (strlen(inmsg) != 0))
-	{
-
-		//strcpy_P(buffer, (char*) pgm_read_word(&(comenzi[17])));
-		if (strstr_P(inmsg, LOGIN) != 0)
-		{
-			//eeprom_write_block(nrtel, (int*) adr, 18);
-			if (nr_pfonnr < 6)
-			{
-				byte error = gsm.WritePhoneNumber(nr_pfonnr, nrtel);
-				if (error != 0)
-				{
-					sprintf_P(buffer,
-							PSTR("Number %s writed in Phone Book position %c"),
-							nrtel, nr_pfonnr);
-					Serial.println(buffer);
-					++nr_pfonnr;
-
-					strcpy_P(buffer, PSTR("Acceptat"));
-					gsm.SendSMS(nrtel, buffer);
-
-				}
-				else
-				{
-					strcpy_P(buffer, PSTR("Writing error"));
-					Serial.println(buffer);
-					gsm.SendSMS(nrtel, buffer);
-				}
-			}
-			else
-			{
-				strcpy_P(buffer, PSTR("No free slot"));
-				gsm.SendSMS(nrtel, buffer);
-			}
-
-			CfgCmd(inmsg);
-
-		}
-		else
-		{
-			CfgCmd(inmsg);
-		}
-	}
-}
 
 
 /**

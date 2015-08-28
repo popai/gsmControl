@@ -11,27 +11,16 @@
 
 #include "cmd.h"
 #include "pinDef.h"
-//**************************************************************************
-//char number[] = "+39123456789";  	//Destination number
-//char text[] = "hello world";  	    //SMS to send
 
-//**************************************************************************
-
-extern GSM gsm;		//gsm handler class define in cmd.h
-//extern SoftwareSerial mySerial;  //rx, tx
+extern GSM gsm;		//gsm handler class define in cmd.cpp
 
 char sms_rx[122];   //Received text SMS
-//String sms_rx;
 char number[20];	//sender phone number
-
-
-uint8_t nr_pfonnr = 1;
+uint8_t nr_pfonnr = 1;	//hold number of phone number on sim
 
 bool config = false, delEEPROM = false;	//define state of controller
 
 byte Check_SMS();  //Check if there is SMS
-
-//float Thermistor(int Tpin);
 
 /**
  * @brief : The setup function is called once at startup of the sketch
@@ -48,7 +37,7 @@ void setup()
 	delay(100);
 	Serial.println("system startup");
 
-	//SetPort();
+	//SetPort(); TODO
 
 	eeprom_read_block(sms_rx, (int*) 486, 24);
 	if (strlen(sms_rx) == 0)
@@ -57,24 +46,27 @@ void setup()
 		eeprom_write_block(sms_rx, (int*) 486, 24);
 		strcpy_P(sms_rx, 0x00);
 	}
+
 	//startup gsm module
-	byte tri = 0;
+	byte tri = 0;			//attempts number
 	byte error = 0;			//error from function
-	while ((error != 1) && (tri < 3))  	//Check status
-	//while ((error == 0) && (tri < 3) )  //Check status
+	gsm.TurnOn(9600);       //module power on
+	while ((error != AT_RESP_OK) && (tri < 10))  	//Check status //XXX de verificat metoda
 	{
-		gsm.TurnOn(9600);          		//module power on
-		gsm.InitParam(PARAM_SET_1);		//configure the module
-		gsm.Echo(0); 				 	//enable/disable AT echo
-		error = gsm.CheckRegistration(); //XXX de verificat metoda
+		error = gsm.SendATCmdWaitResp("AT", 500, 100, "OK", 5);
+		//error = gsm.CheckRegistration();
 		//error=gsm.SendSMS("+40745183841","Modul ON");
 		++tri;
 	}
 	//if (error == REG_NOT_REGISTERED || error == REG_NO_RESPONSE)
-	if (error != 1)
-		Serial.println("GSM init error");
-	else
+	if (error == AT_RESP_OK)
+	{
+		gsm.InitParam(PARAM_SET_1);		//configure the module
+		gsm.Echo(0); 				 	//enable/disable AT echo
 		Serial.println("GSM OK");
+	}
+	else
+		Serial.println("GSM init error");
 
 	for (byte i = 1; i < 7; i++)
 	{
@@ -166,7 +158,6 @@ void loop()
 								number, nr_pfonnr);
 						Serial.println(buffer);
 						++nr_pfonnr;
-						eeprom_write_byte((uint8_t *) 18, nr_pfonnr);
 						strcpy_P(buffer, PSTR("Acceptat"));
 						gsm.SendSMS(number, buffer);
 
@@ -192,16 +183,24 @@ void loop()
 
 	}
 	delay(50);
-	if(millis() % 10000)
-		//gsm.CheckRegistration();
-		gsm.TurnOn(9600);
+
+	//chip module up
+	byte tri = 0;
+	if((millis() % 10000) == 0)
+		while ((error != AT_RESP_OK) && (tri < 10))
+		{
+			error = gsm.SendATCmdWaitResp("AT", 500, 100, "OK", 5);
+			++tri;
+		}
 }
 
 /**
  * @brief :Check if there is an sms
  *
  * @param : no parameters
- * @return: Received SMS position
+ * @return: -1 no sms received
+ * 			GETSMS_AUTH_SMS		received authorized sms
+ * 			GETSMS_NOT_AUTH_SMS received not authorized sms
  */
 byte Check_SMS()
 {
