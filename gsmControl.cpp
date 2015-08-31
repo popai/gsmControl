@@ -16,11 +16,11 @@ extern GSM gsm;		//gsm handler class define in cmd.cpp
 
 char sms_rx[122];   //Received text SMS
 char number[20];	//sender phone number
-uint8_t nr_pfonnr = 1;	//hold number of phone number on sim
+uint8_t nr_pfonnr = 0;	//hold number of phone number on sim
 
 bool config = false, delEEPROM = false;	//define state of controller
 
-byte Check_SMS();  //Check if there is SMS
+int Check_SMS();  //Check if there is SMS
 
 /**
  * @brief : The setup function is called once at startup of the sketch
@@ -49,7 +49,7 @@ void setup()
 
 	//startup gsm module
 	byte tri = 0;			//attempts number
-	byte error = 0;			//error from function
+	int error = 0;			//error from function
 	gsm.TurnOn(9600);       //module power on
 	while ((error != AT_RESP_OK) && (tri < 10))  	//Check status //XXX de verificat metoda
 	{
@@ -76,6 +76,7 @@ void setup()
 		else
 			break;
 	}
+	Serial.println(nr_pfonnr);
 	/*
 	 //if (digitalRead(jp2) == LOW)
 	 if ((PINC & (1 << PINC4)) == 0)
@@ -95,8 +96,8 @@ void setup()
 void loop()
 {
 // The loop function is called in an endless loop
-	byte id;
-	byte error = 0;			//error from function
+	int id = 0;
+	int error = 0;			//error from function
 	byte i = 0;
 	if (delEEPROM)
 		return;
@@ -137,7 +138,7 @@ void loop()
 	{
 		VerificIN();
 		id = Check_SMS();
-
+		//Serial.println(id);
 		if (id == GETSMS_AUTH_SMS)
 			Comand(number, sms_rx);
 		else if (id == GETSMS_NOT_AUTH_SMS)
@@ -202,14 +203,14 @@ void loop()
  * 			GETSMS_AUTH_SMS		received authorized sms
  * 			GETSMS_NOT_AUTH_SMS received not authorized sms
  */
-byte Check_SMS()
+int Check_SMS()
 {
-	byte error = 0;			//error from function
+	int error = 0;			//error from function
 	char str[200];
-	byte pos_sms_rx = -1;  //Received SMS position
+	int pos_sms_rx = -1;  //Received SMS position
 	pos_sms_rx = gsm.IsSMSPresent(SMS_ALL);
 	//Serial.println(pos_sms_rx);
-	if (pos_sms_rx != 0)
+	if (pos_sms_rx > 0)
 	{
 		//Read text/number/position of sms
 		//gsm.GetSMS(pos_sms_rx, number, sms_rx, 120);
