@@ -68,7 +68,7 @@ void pinSetUp()
 	 * PC4 digital software serial Tx						XXX pe placa noua PC3
 	 * PC4, PC5 digital IN, delete EEPROM and Config mode	XXX pe placa noua
 	 */
-	//DDRC |= (1 << DDC5);// | (1 << DDC5);
+	//DDRC |= (1 << DDC5);// | (1 << DDC4);
 	DDRC &= ~((1 << DDC0) | (1 << DDC1) | (1 << DDC2) | (1 << DDC5));// | (1 << DDC3));
 
 	//PORTC |= (1 << PC3) | (1 << PC4) | (1 << PC5); // internal Pull UP switch on
