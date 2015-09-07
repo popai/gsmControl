@@ -121,7 +121,8 @@ void loop()
 					ReadEprom(sms_rx, i);
 			}
 			else if (strlen(sms_rx) != 0)
-				CfgCmd(sms_rx);
+				if(!CfgCmd(sms_rx))
+					Serial.println("ERROR");
 			*sms_rx = 0x00;
 		}
 
@@ -145,13 +146,13 @@ void loop()
 		{
 			//Check if receive a pas
 			char buffer[64];
-			ReadEprom(buffer, 18 * 21);
+			ReadEprom(buffer, 18 * 24);
 			if (strcmp(buffer, sms_rx) == 0)
 			{
 				//write number on sim
 				if (nr_pfonnr < 7) //max 6 number
 				{
-					error = gsm.WritePhoneNumber(nr_pfonnr, number);
+					error = gsm.WritePhoneNumber(nr_pfonnr+1, number);
 					if (error != 0)
 					{
 						sprintf_P(buffer,
