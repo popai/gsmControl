@@ -71,7 +71,7 @@ void setup()
 	for (byte i = 1; i < 7; i++)
 	{
 		error = gsm.GetPhoneNumber(i, number);
-		if (error != 0)  //Find number in specified position
+		if (error == 1)  //Find number in specified position
 			++nr_pfonnr;
 		else
 			break;
@@ -215,7 +215,7 @@ int Check_SMS()
 	{
 		//Read text/number/position of sms
 		//gsm.GetSMS(pos_sms_rx, number, sms_rx, 120);
-		error = gsm.GetAuthorizedSMS(pos_sms_rx, number, sms_rx, 122, 49, 55);
+		error = gsm.GetAuthorizedSMS(pos_sms_rx, number, sms_rx, 122, 1, 6);
 		if (error == GETSMS_AUTH_SMS)
 		//if(error > 0)
 		{
