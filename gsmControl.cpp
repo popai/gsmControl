@@ -71,7 +71,7 @@ void setup()
 	for (byte i = 1; i < 7; i++)
 	{
 		error = gsm.GetPhoneNumber(i, number);
-		if (error != 0)  //Find number in specified position
+		if (error == 1)  //Find number in specified position
 			++nr_pfonnr;
 		else
 			break;
