@@ -213,7 +213,7 @@ void Comand(char *nrtel, char *inmsg)
 	{
 		//digitalWrite(outD1, HIGH);
 		PORTD |= (1 << PIND2);
-		delay(500);
+		delay(1000);
 		PORTD &= ~(1 << PIND2);
 		////pin_state |= (1 << PIND2);
 		////eeprom_write_byte((uint8_t*) 396, pin_state);
@@ -249,7 +249,7 @@ void Comand(char *nrtel, char *inmsg)
 	{
 		//digitalWrite(outD1, HIGH);
 		PORTD |= (1 << PIND3);
-		delay(500);
+		delay(1000);
 		PORTD &= ~(1 << PIND3);
 		////pin_state |= (1 << PIND2);
 		////eeprom_write_byte((uint8_t*) 396, pin_state);
@@ -285,7 +285,7 @@ void Comand(char *nrtel, char *inmsg)
 	{
 		//digitalWrite(outD1, HIGH);
 		PORTD |= (1 << PIND4);
-		delay(500);
+		delay(1000);
 		PORTD &= ~(1 << PIND4);
 		////pin_state |= (1 << PIND2);
 		////eeprom_write_byte((uint8_t*) 396, pin_state);
@@ -321,7 +321,7 @@ void Comand(char *nrtel, char *inmsg)
 	{
 		//digitalWrite(outD1, HIGH);
 		PORTD |= (1 << PIND5);
-		delay(500);
+		delay(1000);
 		PORTD &= ~(1 << PIND5);
 		////pin_state |= (1 << PIND2);
 		////eeprom_write_byte((uint8_t*) 396, pin_state);
@@ -357,7 +357,7 @@ void Comand(char *nrtel, char *inmsg)
 	{
 		//digitalWrite(outD1, HIGH);
 		PORTD |= (1 << PIND6);
-		delay(500);
+		delay(1000);
 		PORTD &= ~(1 << PIND6);
 		////pin_state |= (1 << PIND2);
 		////eeprom_write_byte((uint8_t*) 396, pin_state);
@@ -393,7 +393,7 @@ void Comand(char *nrtel, char *inmsg)
 	{
 		//digitalWrite(outD1, HIGH);
 		PORTD |= (1 << PIND7);
-		delay(500);
+		delay(1000);
 		PORTD &= ~(1 << PIND7);
 		////pin_state |= (1 << PIND2);
 		////eeprom_write_byte((uint8_t*) 396, pin_state);
@@ -427,7 +427,7 @@ void Comand(char *nrtel, char *inmsg)
 	}
 
 	ReadEprom(buffer, 486);
-	//gsm.SendSMS(nrtel, buffer);
+	gsm.SendSMS(nrtel, buffer);
 	Serial.println("comanda ne scrisa");
 	return;
 
@@ -441,7 +441,7 @@ void Comand(char *nrtel, char *inmsg)
  */
 void StareOUT(char *nrtel)
 {
-	char mesage[120];
+	char mesage[320];
 	char buffer[18];
 	//int i = 108;
 	*mesage = 0x00;
@@ -660,10 +660,10 @@ void VerificIN()
 			in1 = false;
 			ReadEprom(buffer, 18 * 1);
 			if (strlen(buffer) != 0)
-				for (byte i = 0; i < 6; i++)
+				for (byte i = 1; i < 7; i++)
 				{
 					error = gsm.GetPhoneNumber(i, number);
-					if (error != 0)  //Find number in specified position
+					if (error == 1)  //Find number in specified position
 						gsm.SendSMS(number, buffer);
 					else
 						break;
@@ -681,10 +681,10 @@ void VerificIN()
 			in2 = false;
 			ReadEprom(buffer, 18 * 2);
 			if (strlen(buffer) != 0)
-				for (byte i = 0; i < 6; i++)
+				for (byte i = 1; i < 7; i++)
 				{
 					error = gsm.GetPhoneNumber(i, number);
-					if (error != 0)  //Find number in specified position
+					if (error == 1)  //Find number in specified position
 						gsm.SendSMS(number, buffer);
 					else
 						break;
@@ -702,10 +702,10 @@ void VerificIN()
 			in3 = false;
 			ReadEprom(buffer, 18 * 3);
 			if (strlen(buffer) != 0)
-				for (byte i = 0; i < 6; i++)
+				for (byte i = 1; i < 7; i++)
 				{
 					error = gsm.GetPhoneNumber(i, number);
-					if (error != 0)  //Find number in specified position
+					if (error == 1)  //Find number in specified position
 						gsm.SendSMS(number, buffer);
 					else
 						break;

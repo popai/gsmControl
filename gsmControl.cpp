@@ -66,7 +66,10 @@ void setup()
 		Serial.println("GSM OK");
 	}
 	else
+	{
 		Serial.println("GSM init error");
+		PORTB |= (1 << PINB5);
+	}
 
 	for (byte i = 1; i < 7; i++)
 	{
@@ -77,6 +80,8 @@ void setup()
 			break;
 	}
 	Serial.println(nr_pfonnr);
+	if(nr_pfonnr == 0)
+		PORTB |= (1 << PINB5);
 	/*
 	 //if (digitalRead(jp2) == LOW)
 	 if ((PINC & (1 << PINC4)) == 0)
@@ -184,16 +189,26 @@ void loop()
 		id = 0;
 
 	}
-	delay(50);
+
 
 	//chip module up
 	byte tri = 0;
-	if((millis() % 10000) == 0)
+	//if((millis() % 100) == 0)
+	//{
+		//Serial.print("test\n");
+		error = gsm.SendATCmdWaitResp("AT", 500, 100, "OK", 5);
+		if(error == AT_RESP_ERR_NO_RESP)
+			PORTB |= (1 << PINB5);
 		while ((error != AT_RESP_OK) && (tri < 10))
 		{
+
 			error = gsm.SendATCmdWaitResp("AT", 500, 100, "OK", 5);
 			++tri;
 		}
+		if(error)
+			PORTB &= ~(1 << PINB5);
+	//}
+	delay(50);
 }
 
 /**
@@ -215,6 +230,7 @@ int Check_SMS()
 	{
 		//Read text/number/position of sms
 		//gsm.GetSMS(pos_sms_rx, number, sms_rx, 120);
+		PORTB |= (1 << PINB4);
 		error = gsm.GetAuthorizedSMS(pos_sms_rx, number, sms_rx, 122, 1, 6);
 		if (error == GETSMS_AUTH_SMS)
 		//if(error > 0)
@@ -224,6 +240,7 @@ int Check_SMS()
 			Serial.println(str);
 			//Serial.println(sms_rx);
 			error = gsm.DeleteSMS(pos_sms_rx);
+			PORTB &= ~(1 << PINB4);
 			if (error == 1)
 			{
 				strcpy_P(str, PSTR("SMS deleted"));
@@ -241,6 +258,7 @@ int Check_SMS()
 			sprintf_P(str, PSTR("Received SMS from %s (sim position: %d):%s"),
 					number, pos_sms_rx, sms_rx);
 			Serial.println(str);
+			PORTB &= ~(1 << PINB4);
 
 			error = gsm.DeleteSMS(pos_sms_rx);
 			if (error == 1)
