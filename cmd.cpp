@@ -45,9 +45,10 @@ const prog_char OUT6P[] PROGMEM = "OUT6P";		//adresa 18*21
 const prog_char TMP1[] PROGMEM = "TMP1";		//adresa 18*22
 const prog_char TMP2[] PROGMEM = "TMP2";		//adresa 18*23
 const prog_char LOGIN[] PROGMEM = "LOGIN";		//adresa 18*24
-const prog_char STARE_OUT[] PROGMEM = "STARE OUT";	//adresa 18*25
-const prog_char STARE_TMP[] PROGMEM = "STARE TMP";	//adresa 18*26
-const prog_char STARE_ALL[] PROGMEM = "STARE ALL";	//adresa 18*27
+const prog_char STARE_IN[] PROGMEM = "STARE IN";	//predefined command
+const prog_char STARE_OUT[] PROGMEM = "STARE OUT";	//predefined command
+const prog_char STARE_TMP[] PROGMEM = "STARE TMP";	//predefined command
+const prog_char STARE_ALL[] PROGMEM = "STARE ALL";	//predefined command
 //const prog_char OK[] PROGMEM = "OK";	//adresa 18*22
 
 // The table to refer to my strings.
@@ -397,6 +398,13 @@ void Comand(char *nrtel, char *inmsg)
 		return;
 	}
 
+	if (strcasecmp_P(inmsg, STARE_IN) == 0)
+	{
+		StareIN(nrtel);
+		return;
+	}
+
+
 	//strcpy_P(buffer, (char*) pgm_read_word(&(comenzi[18])));
 	//if (strcasecmp(buffer, inmsg) == 0)
 	if (strcasecmp_P(inmsg, STARE_OUT) == 0)
@@ -416,6 +424,7 @@ void Comand(char *nrtel, char *inmsg)
 	//if (strcasecmp(buffer, inmsg) == 0)
 	if (strcasecmp_P(inmsg, STARE_ALL) == 0)
 	{
+		StareIN(nrtel);
 		StareOUT(nrtel);
 		StareTMP(nrtel);
 		return;
@@ -429,7 +438,7 @@ void Comand(char *nrtel, char *inmsg)
 }
 
 /**
- * @brief :	Send a sms with state of out pins
+ * @brief :	Send a sms with state of output pins
  *
  * @param : char *nrtel = phone number who interrogate the state
  * @return: no return
@@ -568,11 +577,101 @@ void StareOUT(char *nrtel)
 }
 
 /**
- * @brief : Thermistor calculate the temperature in grades Celsius dead by a 10K thermistor
+ * @brief : Send a sms with state of input pins
  *
- * @param : analog pin where connect the thermistor
- * @return: temperature in grade Celsius
+ * @param :nrtel -> telephone number to send sms
+ * @return: no return
  */
+void StareIN(char *nrtel)
+{
+
+	char mesage[320];
+	char buffer[18];
+
+//if (digitalRead(inD1) == LOW && in1)
+	if ((PINB & (1 << PINB1)) == 0)
+	{
+		ReadEprom(buffer, 18 * 1);
+		if (strlen(buffer) != 0)
+		{
+			strcat(buffer, " on");
+			strcat(mesage, buffer);
+			strcat_P(mesage, PSTR("\n\r"));
+		}
+
+	}
+	else
+	{
+		ReadEprom(buffer, 18 * 1);
+		if (strlen(buffer) != 0)
+		{
+			strcat(buffer, " off");
+			strcat(mesage, buffer);
+			strcat_P(mesage, PSTR("\n\r"));
+
+		}
+
+	}
+
+//if (digitalRead(inD2) == LOW && in2)
+	if ((PINB & (1 << PINB2)) == 0)
+	{
+		ReadEprom(buffer, 18 * 2);
+		if (strlen(buffer) != 0)
+		{
+			strcat(buffer, " on");
+			strcat(mesage, buffer);
+			strcat_P(mesage, PSTR("\n\r"));
+		}
+
+	}
+	else
+	{
+		ReadEprom(buffer, 18 * 2);
+		if (strlen(buffer) != 0)
+		{
+			strcat(buffer, " off");
+			strcat(mesage, buffer);
+			strcat_P(mesage, PSTR("\n\r"));
+
+		}
+
+	}
+
+//if (digitalRead(inD3) == LOW && in3)
+	if ((PINB & (1 << PINB3)) == 0)
+	{
+		ReadEprom(buffer, 18 * 3);
+		if (strlen(buffer) != 0)
+		{
+			strcat(buffer, " on");
+			strcat(mesage, buffer);
+			strcat_P(mesage, PSTR("\n\r"));
+		}
+
+	}
+	else
+	{
+		ReadEprom(buffer, 18 * 3);
+		if (strlen(buffer) != 0)
+		{
+			strcat(buffer, " off");
+			strcat(mesage, buffer);
+			//strcat_P(mesage, PSTR("\n\r"));
+
+		}
+
+	}
+	if (strlen(mesage) != 0)
+		gsm.SendSMS(nrtel, mesage);
+
+}
+	/**
+	 * @brief : Thermistor calculate the temperature in grades Celsius dead by a 10K thermistor
+	 *
+	 * @param : analog pin where connect the thermistor
+	 * @return: temperature in grade Celsius
+	 */
 float Thermistor(int Tpin)
 {
 	float Vo;
@@ -630,7 +729,7 @@ void StareTMP(char *nrtel)
 	}
 
 	if (strlen(mesage) != 0)
-		gsm.SendSMS(nrtel, mesage);
+	gsm.SendSMS(nrtel, mesage);
 }
 
 /**
@@ -660,7 +759,7 @@ void VerificIN()
 				{
 					error = gsm.GetPhoneNumber(i, number);
 					if (error == 1)  //Find number in specified position
-						gsm.SendSMS(number, buffer);
+					gsm.SendSMS(number, buffer);
 				}
 			}
 		}
@@ -677,7 +776,7 @@ void VerificIN()
 				{
 					error = gsm.GetPhoneNumber(i, number);
 					if (error == 1)  //Find number in specified position
-						gsm.SendSMS(number, buffer);
+					gsm.SendSMS(number, buffer);
 				}
 			}
 		}
@@ -698,7 +797,7 @@ void VerificIN()
 				{
 					error = gsm.GetPhoneNumber(i, number);
 					if (error == 1)  //Find number in specified position
-						gsm.SendSMS(number, buffer);
+					gsm.SendSMS(number, buffer);
 				}
 			}
 		}
@@ -715,7 +814,7 @@ void VerificIN()
 				{
 					error = gsm.GetPhoneNumber(i, number);
 					if (error == 1)  //Find number in specified position
-						gsm.SendSMS(number, buffer);
+					gsm.SendSMS(number, buffer);
 				}
 			}
 		}
@@ -736,7 +835,7 @@ void VerificIN()
 				{
 					error = gsm.GetPhoneNumber(i, number);
 					if (error == 1)  //Find number in specified position
-						gsm.SendSMS(number, buffer);
+					gsm.SendSMS(number, buffer);
 				}
 			}
 		}
@@ -753,7 +852,7 @@ void VerificIN()
 				{
 					error = gsm.GetPhoneNumber(i, number);
 					if (error == 1)  //Find number in specified position
-						gsm.SendSMS(number, buffer);
+					gsm.SendSMS(number, buffer);
 				}
 			}
 		}
