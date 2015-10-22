@@ -76,20 +76,18 @@ void setup()
 		error = gsm.GetPhoneNumber(i, number);
 		if (error == 1)  //Find number in specified position
 			++nr_pfonnr;
-		else
-			break;
 	}
 	Serial.println(nr_pfonnr);
 	if(nr_pfonnr == 0)
 		PORTB |= (1 << PINB5);
-	/*
+
 	 //if (digitalRead(jp2) == LOW)
 	 if ((PINC & (1 << PINC4)) == 0)
 	 {
 	 delEEPROM = true;
 	 DellEprom();
 	 }
-	 */
+
 	//if (digitalRead(jp3) == LOW)
 	if ((PINC & (1 << PINC5)) == 0)
 	{

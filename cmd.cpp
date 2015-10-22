@@ -540,7 +540,7 @@ void StareOUT(char *nrtel)
 		if (strlen(buffer) != 0)
 		{
 			strcat(mesage, buffer);
-			//strcat(mesage, "\n");
+			strcat_P(mesage, PSTR("\r\n"));
 		}
 	}
 
@@ -661,8 +661,6 @@ void VerificIN()
 					error = gsm.GetPhoneNumber(i, number);
 					if (error == 1)  //Find number in specified position
 						gsm.SendSMS(number, buffer);
-					else
-						break;
 				}
 			}
 		}
@@ -680,8 +678,6 @@ void VerificIN()
 					error = gsm.GetPhoneNumber(i, number);
 					if (error == 1)  //Find number in specified position
 						gsm.SendSMS(number, buffer);
-					else
-						break;
 				}
 			}
 		}
@@ -703,8 +699,6 @@ void VerificIN()
 					error = gsm.GetPhoneNumber(i, number);
 					if (error == 1)  //Find number in specified position
 						gsm.SendSMS(number, buffer);
-					else
-						break;
 				}
 			}
 		}
@@ -722,8 +716,6 @@ void VerificIN()
 					error = gsm.GetPhoneNumber(i, number);
 					if (error == 1)  //Find number in specified position
 						gsm.SendSMS(number, buffer);
-					else
-						break;
 				}
 			}
 		}
@@ -745,8 +737,6 @@ void VerificIN()
 					error = gsm.GetPhoneNumber(i, number);
 					if (error == 1)  //Find number in specified position
 						gsm.SendSMS(number, buffer);
-					else
-						break;
 				}
 			}
 		}
@@ -764,8 +754,6 @@ void VerificIN()
 					error = gsm.GetPhoneNumber(i, number);
 					if (error == 1)  //Find number in specified position
 						gsm.SendSMS(number, buffer);
-					else
-						break;
 				}
 			}
 		}
