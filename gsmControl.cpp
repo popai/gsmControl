@@ -16,7 +16,7 @@ extern GSM gsm;		//gsm handler class define in cmd.cpp
 
 char sms_rx[122];   //Received text SMS
 char number[20];	//sender phone number
-uint8_t nr_pfonnr = 0;	//hold number of phone number on sim
+//uint8_t nr_pfonnr = 0;	//hold number of phone number on sim
 
 bool config = false, delEEPROM = false;	//define state of controller
 
@@ -71,6 +71,7 @@ void setup()
 		PORTB |= (1 << PINB5);
 	}
 
+	uint8_t nr_pfonnr = 0;	//hold number of phone number on sim
 	for (byte i = 1; i < 7; i++)
 	{
 		error = gsm.GetPhoneNumber(i, number);
@@ -153,6 +154,15 @@ void loop()
 			if (strcmp(buffer, sms_rx) == 0)
 			{
 				//write number on sim
+				uint8_t nr_pfonnr = 1;	//hold number of phone number on sim
+				for (byte i = 1; i < 7; i++)
+				{
+					error = gsm.GetPhoneNumber(i, number);
+					if (error == 1)  //Find number in specified position
+						++nr_pfonnr;
+					else break;
+				}
+
 				if (nr_pfonnr < 7) //max 6 number
 				{
 					error = gsm.WritePhoneNumber(nr_pfonnr+1, number);
