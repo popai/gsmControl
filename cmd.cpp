@@ -498,7 +498,7 @@ void Comand(char *nrtel, char *inmsg)
  */
 void StareOUT(char *nrtel)
 {
-	char mesage[320];
+	char mesage[256];
 	char buffer[18];
 	//int i = 108;
 	*mesage = 0x00;
@@ -512,7 +512,7 @@ void StareOUT(char *nrtel)
 		if (strlen(buffer) != 0)
 		{
 			strcat(mesage, buffer);
-			strcat_P(mesage, PSTR("\n\r"));
+			strcat_P(mesage, PSTR("\r\n"));
 		}
 
 	}
@@ -522,7 +522,7 @@ void StareOUT(char *nrtel)
 		if (strlen(buffer) != 0)
 		{
 			strcat(mesage, buffer);
-			strcat_P(mesage, PSTR("\n\r"));
+			strcat_P(mesage, PSTR("\r\n"));
 		}
 	}
 
@@ -638,9 +638,9 @@ void StareOUT(char *nrtel)
 void StareIN(char *nrtel)
 {
 
-	char mesage[320];
+	char mesage[128];
 	char buffer[18];
-
+	*mesage = 0x00;
 //if (digitalRead(inD1) == LOW && in1)
 	if ((PINB & (1 << PINB1)) == 0)
 	{
@@ -649,7 +649,7 @@ void StareIN(char *nrtel)
 		{
 			strcat(buffer, " on");
 			strcat(mesage, buffer);
-			strcat_P(mesage, PSTR("\n\r"));
+			strcat_P(mesage, PSTR("\r\n"));
 		}
 
 	}
@@ -660,7 +660,7 @@ void StareIN(char *nrtel)
 		{
 			strcat(buffer, " off");
 			strcat(mesage, buffer);
-			strcat_P(mesage, PSTR("\n\r"));
+			strcat_P(mesage, PSTR("\r\n"));
 
 		}
 
@@ -674,7 +674,7 @@ void StareIN(char *nrtel)
 		{
 			strcat(buffer, " on");
 			strcat(mesage, buffer);
-			strcat_P(mesage, PSTR("\n\r"));
+			strcat_P(mesage, PSTR("\r\n"));
 		}
 
 	}
@@ -685,7 +685,7 @@ void StareIN(char *nrtel)
 		{
 			strcat(buffer, " off");
 			strcat(mesage, buffer);
-			strcat_P(mesage, PSTR("\n\r"));
+			strcat_P(mesage, PSTR("\r\n"));
 
 		}
 
@@ -699,7 +699,7 @@ void StareIN(char *nrtel)
 		{
 			strcat(buffer, " on");
 			strcat(mesage, buffer);
-			strcat_P(mesage, PSTR("\n\r"));
+			strcat_P(mesage, PSTR("\r\n"));
 		}
 
 	}
@@ -748,10 +748,11 @@ float Thermistor(int Tpin)
  */
 void StareTMP(char *nrtel)
 {
-	char mesage[120];
+	char mesage[128];
 	char buffer[18];
 	char tmpe[32];
 	int tmp, tmp1, tmp2;
+	*mesage = 0x00;
 
 	tmp = Thermistor(PINC0);
 	delay(10);

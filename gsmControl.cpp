@@ -165,7 +165,7 @@ void loop()
 
 				if (nr_pfonnr < 7) //max 6 number
 				{
-					error = gsm.WritePhoneNumber(nr_pfonnr+1, number);
+					error = gsm.WritePhoneNumber(nr_pfonnr, number);
 					if (error != 0)
 					{
 						sprintf_P(buffer,
