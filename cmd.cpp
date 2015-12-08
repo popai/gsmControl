@@ -19,6 +19,9 @@
 
 GSM gsm;			//gsm handler class
 //extern uint8_t nr_pfonnr;
+void static StareIN(char *nrtel);
+void static StareOUT(char *nrtel);
+void static StareTMP(char *nrtel);
 
 //"Flash store comands etc are strings to store
 const prog_char IN1[] PROGMEM = "IN1";			//adresa 18*1
@@ -175,7 +178,7 @@ void Config(char *nrtel, char *inmsg)
 				gsm.SendSMS(nrtel, buffer);
 			}
 
-			CfgCmd(inmsg);
+			//CfgCmd(inmsg);
 
 		}
 		else if (strstr_P(inmsg, DEL) != 0)
@@ -189,9 +192,11 @@ void Config(char *nrtel, char *inmsg)
 				error = gsm.DelPhoneNumber(i);
 			if (error != 0)
 			{
-				Serial.print("Phone number position ");
-				Serial.print(i);
-				Serial.println(" deleted");
+				sprintf_P(buffer, " %s: %d %s", PSTR("Phone number position "), i, PSTR(" deleted"));
+				//Serial.print("Phone number position ");
+				//Serial.print(i);
+				//Serial.println(" deleted");
+				Serial.println(buffer);
 
 				strcpy_P(buffer, PSTR("Sters"));
 				gsm.SendSMS(nrtel, buffer);
@@ -468,12 +473,15 @@ void Comand(char *nrtel, char *inmsg)
 			error = gsm.DelPhoneNumber(i);
 		if (error != 0)
 		{
-			Serial.print("Phone number position ");
-			Serial.print(i);
-			Serial.println(" deleted");
+			char tmpbuffer[64];
+			sprintf_P(tmpbuffer, " %s: %d %s", PSTR("Phone number position "), i, PSTR(" deleted"));
+			//Serial.print("Number position ");
+			//Serial.print(i);
+			//Serial.println(" deleted");
+			Serial.println(buffer);
 
 			strcpy_P(buffer, PSTR("Sters"));
-			gsm.SendSMS(nrtel, buffer);
+			gsm.SendSMS(nrtel, tmpbuffer);
 		}
 		else
 		{
@@ -485,7 +493,7 @@ void Comand(char *nrtel, char *inmsg)
 
 	ReadEprom(buffer, 486);
 	gsm.SendSMS(nrtel, buffer);
-	Serial.println("comanda ne scrisa");
+	Serial.println(buffer);
 	return;
 
 }
@@ -496,7 +504,7 @@ void Comand(char *nrtel, char *inmsg)
  * @param : char *nrtel = phone number who interrogate the state
  * @return: no return
  */
-void StareOUT(char *nrtel)
+void static StareOUT(char *nrtel)
 {
 	char mesage[256];
 	char buffer[18];
@@ -635,10 +643,10 @@ void StareOUT(char *nrtel)
  * @param :nrtel -> telephone number to send sms
  * @return: no return
  */
-void StareIN(char *nrtel)
+void static StareIN(char *nrtel)
 {
 
-	char mesage[128];
+	char mesage[96];
 	char buffer[18];
 	*mesage = 0x00;
 //if (digitalRead(inD1) == LOW && in1)
@@ -746,9 +754,9 @@ float Thermistor(int Tpin)
  * @param : char *nrtel = phone number who interrogate the state
  * @return: no return
  */
-void StareTMP(char *nrtel)
+static void StareTMP(char *nrtel)
 {
-	char mesage[128];
+	char mesage[96];
 	char buffer[18];
 	char tmpe[32];
 	int tmp, tmp1, tmp2;
