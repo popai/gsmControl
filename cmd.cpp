@@ -139,6 +139,7 @@ void Config(char *nrtel, char *inmsg)
 {
 	char buffer[64];
 	int adr = 18;
+	byte error = 0;
 	if ((strlen(nrtel) != 0) && (strlen(inmsg) != 0))
 	{
 		//TODO mtetod to delete number from pozition
@@ -146,10 +147,18 @@ void Config(char *nrtel, char *inmsg)
 		//add number on authorized slot;
 		if (strstr_P(inmsg, LOGIN) != 0)
 		{
-			int8_t nr_pfonnr = 1;
+			uint8_t nr_pfonnr = 1;	//hold number of phone number on sim
+			for (byte i = 1; i < 7; i++)
+			{
+				error = gsm.GetPhoneNumber(i, buffer);
+				if (error == 1)  //Find number in specified position
+					++nr_pfonnr;
+				else
+					break;
+			}
 			if (nr_pfonnr < 7)
 			{
-				byte error = gsm.WritePhoneNumber(nr_pfonnr, nrtel);
+				error = gsm.WritePhoneNumber(nr_pfonnr, nrtel);
 				if (error != 0)
 				{
 					sprintf_P(buffer,

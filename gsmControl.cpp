@@ -38,6 +38,13 @@ void setup()
 	Serial.println("system startup");
 
 	//SetPort(); TODO
+	//if (digitalRead(jp2) == LOW)
+	if ((PINC & (1 << PINC4)) == 0)
+	{
+		delEEPROM = true;
+		DellEprom();
+		return;
+	}
 
 	eeprom_read_block(sms_rx, (int*) 486, 24);
 	if (strlen(sms_rx) == 0)
@@ -51,7 +58,7 @@ void setup()
 	byte tri = 0;			//attempts number
 	int error = 0;			//error from function
 	gsm.TurnOn(9600);       //module power on
-	while ((error != AT_RESP_OK) && (tri < 10))  	//Check status //XXX de verificat metoda
+	while ((error != AT_RESP_OK) && (tri < 10)) //Check status //XXX de verificat metoda
 	{
 		error = gsm.SendATCmdWaitResp("AT", 500, 100, "OK", 5);
 		//error = gsm.CheckRegistration();
@@ -79,15 +86,8 @@ void setup()
 			++nr_pfonnr;
 	}
 	Serial.println(nr_pfonnr);
-	if(nr_pfonnr == 0)
+	if (nr_pfonnr == 0)
 		PORTB |= (1 << PINB5);
-
-	 //if (digitalRead(jp2) == LOW)
-	 if ((PINC & (1 << PINC4)) == 0)
-	 {
-	 delEEPROM = true;
-	 DellEprom();
-	 }
 
 	//if (digitalRead(jp3) == LOW)
 	if ((PINC & (1 << PINC5)) == 0)
@@ -125,7 +125,7 @@ void loop()
 					ReadEprom(sms_rx, i);
 			}
 			else if (strlen(sms_rx) != 0)
-				if(!CfgCmd(sms_rx))
+				if (!CfgCmd(sms_rx))
 					Serial.println("ERROR");
 			*sms_rx = 0x00;
 		}
@@ -160,16 +160,18 @@ void loop()
 					error = gsm.GetPhoneNumber(i, number);
 					if (error == 1)  //Find number in specified position
 						++nr_pfonnr;
-					else break;
+					else
+						break;
 				}
 
 				if (nr_pfonnr < 7) //max 6 number
 				{
-					error = gsm.WritePhoneNumber(nr_pfonnr+1, number);
+					error = gsm.WritePhoneNumber(nr_pfonnr, number);
 					if (error != 0)
 					{
 						sprintf_P(buffer,
-								PSTR("Number %s writed in Phone Book position %d"),
+								PSTR(
+										"Number %s writed in Phone Book position %d"),
 								number, nr_pfonnr);
 						Serial.println(buffer);
 						++nr_pfonnr;
@@ -190,7 +192,12 @@ void loop()
 					gsm.SendSMS(number, buffer);
 				}
 			}
+			else
+			{
+				strcpy_P(buffer, PSTR("NE AUTORIZAT"));
+				gsm.SendSMS(number, buffer);
 
+			}
 		}
 		*number = 0x00;
 		*sms_rx = 0x00;
@@ -198,23 +205,22 @@ void loop()
 
 	}
 
-
 	//chip module up
 	byte tri = 0;
 	//if((millis() % 100) == 0)
 	//{
-		//Serial.print("test\n");
-		error = gsm.SendATCmdWaitResp("AT", 500, 100, "OK", 5);
-		if(error == AT_RESP_ERR_NO_RESP)
-			PORTB |= (1 << PINB5);
-		while ((error != AT_RESP_OK) && (tri < 10))
-		{
+	//Serial.print("test\n");
+	error = gsm.SendATCmdWaitResp("AT", 500, 100, "OK", 5);
+	if (error == AT_RESP_ERR_NO_RESP)
+		PORTB |= (1 << PINB5);
+	while ((error != AT_RESP_OK) && (tri < 10))
+	{
 
-			error = gsm.SendATCmdWaitResp("AT", 500, 100, "OK", 5);
-			++tri;
-		}
-		if(error)
-			PORTB &= ~(1 << PINB5);
+		error = gsm.SendATCmdWaitResp("AT", 500, 100, "OK", 5);
+		++tri;
+	}
+	if (error)
+		PORTB &= ~(1 << PINB5);
 	//}
 	delay(50);
 }
