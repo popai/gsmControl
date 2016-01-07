@@ -32,17 +32,17 @@ void setup()
 {
 // Add your initialization code here
 	pinSetUp();			//set pins
-
-	Serial.begin(115200);	//start hardwre serial
+	Serial.begin(9600);	//start hardwre serial
 	delay(100);
 	Serial.println("system startup");
-
+	gsm.TurnOn(9600);       //module power on
 	//SetPort(); TODO
 	//if (digitalRead(jp2) == LOW)
 	if ((PINC & (1 << PINC4)) == 0)
 	{
 		delEEPROM = true;
 		DellEprom();
+		Serial.println("Eprom sters");
 		return;
 	}
 
@@ -55,22 +55,16 @@ void setup()
 	}
 
 	//startup gsm module
-	byte tri = 0;			//attempts number
+	//byte tri = 0;			//attempts number
 	int error = 0;			//error from function
-	gsm.TurnOn(9600);       //module power on
-	while ((error != AT_RESP_OK) && (tri < 10)) //Check status //XXX de verificat metoda
-	{
-		error = gsm.SendATCmdWaitResp("AT", 500, 100, "OK", 5);
-		//error = gsm.CheckRegistration();
-		//error=gsm.SendSMS("+40745183841","Modul ON");
-		++tri;
-	}
-	//if (error == REG_NOT_REGISTERED || error == REG_NO_RESPONSE)
+	//gsm.TurnOn(9600);       //module power on
+	error = gsm.SendATCmdWaitResp("AT", 500, 100, "OK", 5);
 	if (error == AT_RESP_OK)
 	{
 		gsm.InitParam(PARAM_SET_1);		//configure the module
 		gsm.Echo(0); 				 	//enable/disable AT echo
 		Serial.println("GSM OK");
+		error=gsm.SendSMS("+40745183841","Modul ON");
 	}
 	else
 	{
@@ -86,8 +80,8 @@ void setup()
 			++nr_pfonnr;
 	}
 	Serial.println(nr_pfonnr);
-	if (nr_pfonnr == 0)
-		PORTB |= (1 << PINB5);
+	//if (nr_pfonnr == 0)
+	//PORTB |= (1 << PINB5);
 
 	//if (digitalRead(jp3) == LOW)
 	if ((PINC & (1 << PINC5)) == 0)
@@ -155,15 +149,16 @@ void loop()
 			{
 				//write number on sim
 				uint8_t nr_pfonnr = 1;	//hold number of phone number on sim
+				char tmpnr[20];
 				for (byte i = 1; i < 7; i++)
 				{
-					error = gsm.GetPhoneNumber(i, number);
+					error = gsm.GetPhoneNumber(i, tmpnr);
 					if (error == 1)  //Find number in specified position
 						++nr_pfonnr;
 					else
 						break;
 				}
-
+				Serial.println(nr_pfonnr);
 				if (nr_pfonnr < 7) //max 6 number
 				{
 					error = gsm.WritePhoneNumber(nr_pfonnr, number);
@@ -204,24 +199,15 @@ void loop()
 		id = 0;
 
 	}
-
 	//chip module up
-	byte tri = 0;
-	//if((millis() % 100) == 0)
-	//{
 	//Serial.print("test\n");
-	error = gsm.SendATCmdWaitResp("AT", 500, 100, "OK", 5);
+	error = gsm.SendATCmdWaitResp("AT", 500, 100, "OK", 2);
 	if (error == AT_RESP_ERR_NO_RESP)
 		PORTB |= (1 << PINB5);
-	while ((error != AT_RESP_OK) && (tri < 10))
-	{
-
-		error = gsm.SendATCmdWaitResp("AT", 500, 100, "OK", 5);
-		++tri;
-	}
-	if (error)
+	error = gsm.SendATCmdWaitResp("AT", 500, 100, "OK", 5);
+	if (error == AT_RESP_OK)
 		PORTB &= ~(1 << PINB5);
-	//}
+
 	delay(50);
 }
 

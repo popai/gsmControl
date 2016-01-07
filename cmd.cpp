@@ -140,13 +140,11 @@ int8_t CfgCmd(char *inbuffer)
  */
 void Config(char *nrtel, char *inmsg)
 {
-	char buffer[64];
-	int adr = 18;
-	byte error = 0;
+	char buffer[56];
+	//int adr = 18;
 	if ((strlen(nrtel) != 0) && (strlen(inmsg) != 0))
 	{
-		//TODO mtetod to delete number from pozition
-
+		int error = 0;
 		//add number on authorized slot;
 		if (strstr_P(inmsg, LOGIN) != 0)
 		{
@@ -193,7 +191,7 @@ void Config(char *nrtel, char *inmsg)
 		else if (strstr_P(inmsg, DEL) != 0)
 		{
 			byte i = 1;
-			byte error = 0;
+			int error = 0;
 			for (i = 1; i < 7; i++)
 				if (gsm.ComparePhoneNumber(i, nrtel))
 					break;
@@ -201,7 +199,7 @@ void Config(char *nrtel, char *inmsg)
 				error = gsm.DelPhoneNumber(i);
 			if (error != 0)
 			{
-				sprintf_P(buffer, " %s: %d %s", PSTR("Phone number position "), i, PSTR(" deleted"));
+				sprintf_P(buffer, " %s: %d %s", PSTR("position "), i, PSTR(" deleted"));
 				//Serial.print("Phone number position ");
 				//Serial.print(i);
 				//Serial.println(" deleted");
@@ -474,7 +472,7 @@ void Comand(char *nrtel, char *inmsg)
 	if (strcasecmp_P(inmsg, DEL) == 0)
 	{
 		byte i = 1;
-		byte error = 0;
+		int error = 0;
 		for (i = 1; i < 7; i++)
 			if (gsm.ComparePhoneNumber(i, nrtel))
 				break;
@@ -482,15 +480,15 @@ void Comand(char *nrtel, char *inmsg)
 			error = gsm.DelPhoneNumber(i);
 		if (error != 0)
 		{
-			char tmpbuffer[64];
-			sprintf_P(tmpbuffer, " %s: %d %s", PSTR("Phone number position "), i, PSTR(" deleted"));
+			char tmpbuffer[56];
+			sprintf_P(tmpbuffer, " %s: %d %s", PSTR("Position "), i, PSTR(" deleted"));
 			//Serial.print("Number position ");
 			//Serial.print(i);
 			//Serial.println(" deleted");
-			Serial.println(buffer);
+			Serial.println(tmpbuffer);
 
 			strcpy_P(buffer, PSTR("Sters"));
-			gsm.SendSMS(nrtel, tmpbuffer);
+			gsm.SendSMS(nrtel, buffer);
 		}
 		else
 		{
@@ -938,7 +936,7 @@ void VerificIN()
  *
  * @param : no parameters
  * @return: no return
- */
+ *
 void SetPort()
 {
 	uint8_t pin_state = 0b00000000;
@@ -946,3 +944,4 @@ void SetPort()
 	//Serial.println(pin_state);
 	PORTD |= pin_state;
 }
+*/
