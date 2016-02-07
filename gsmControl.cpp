@@ -6,8 +6,9 @@
  */
 
 #include "gsmControl.h"
-#include <MyGSM.h>
+#include "lib/myGSM/MyGSM.h"
 #include <avr/eeprom.h>
+#include <avr/wdt.h>
 
 #include "cmd.h"
 #include "pinDef.h"
@@ -31,13 +32,14 @@ int Check_SMS();  //Check if there is SMS
 void setup()
 {
 // Add your initialization code here
+	wdt_disable();
 	pinSetUp();			//set pins
+
 	Serial.begin(9600);	//start hardwre serial
 	delay(100);
-	Serial.println("system startup");
+	Serial.println(F("system startup"));
+	//startup gsm module
 	gsm.TurnOn(9600);       //module power on
-	//SetPort(); TODO
-	//if (digitalRead(jp2) == LOW)
 	if ((PINC & (1 << PINC4)) == 0)
 	{
 		delEEPROM = true;
@@ -54,48 +56,43 @@ void setup()
 		strcpy_P(sms_rx, 0x00);
 	}
 
-	//startup gsm module
-	//byte tri = 0;			//attempts number
-	int error = 0;			//error from function
-	//gsm.TurnOn(9600);       //module power on
-	error = gsm.SendATCmdWaitResp("AT", 500, 100, "OK", 5);
-	if (error == AT_RESP_OK)
+	//Check status
+	//int error = 0;			//error from function
+	//error = gsm.SendATCmdWaitResp("AT", 500, 100, "OK", 5);
+	if (gsm.SendATCmdWaitResp("AT", 500, 100, "OK", 5) == AT_RESP_OK)
 	{
 		gsm.InitParam(PARAM_SET_1);		//configure the module
-		gsm.Echo(0); 				 	//enable/disable AT echo
+		gsm.Echo(0);		//enable/disable AT echo
 		Serial.println("GSM OK");
-		error=gsm.SendSMS("+40745183841","Modul ON");
+		//error=gsm.SendSMS("+40745183841","Modul ON");
 	}
 	else
 	{
-		Serial.println("GSM init error");
+		Serial.println(F("GSM init error"));
 		PORTB |= (1 << PINB5);
 	}
 
 	uint8_t nr_pfonnr = 0;	//hold number of phone number on sim
 	for (byte i = 1; i < 7; i++)
-	{
-		error = gsm.GetPhoneNumber(i, number);
-		if (error == 1)  //Find number in specified position
+		if (gsm.GetPhoneNumber(i, number) == 1)  //Find number in specified position
 			++nr_pfonnr;
-	}
+
 	Serial.println(nr_pfonnr);
+
 	//if (nr_pfonnr == 0)
 	//PORTB |= (1 << PINB5);
 
 	//if (digitalRead(jp3) == LOW)
 	if ((PINC & (1 << PINC5)) == 0)
-	{
 		config = true;
-	}
-
+	wdt_enable(WDTO_8S);
 }
 
 void loop()
 {
 // The loop function is called in an endless loop
 	int id = 0;
-	int error = 0;			//error from function
+	//int error = 0;			//error from function
 	byte i = 0;
 	if (delEEPROM)
 		return;
@@ -132,6 +129,13 @@ void loop()
 			*sms_rx = 0x00;
 			id = 0;
 		}
+		//test SIM900 module up
+		if (AT_RESP_OK == gsm.SendATCmdWaitResp("AT", 500, 100, "OK", 5))
+			PORTB &= ~(1 << PINB5);			//ERROR LED off
+		else PORTB |= (1 << PINB5);			//ERROR LED on
+
+		//XXX feeding the dog
+		wdt_reset();
 	}
 	else
 	{
@@ -152,46 +156,38 @@ void loop()
 				char tmpnr[20];
 				for (byte i = 1; i < 7; i++)
 				{
-					error = gsm.GetPhoneNumber(i, tmpnr);
-					if (error == 1)  //Find number in specified position
-						++nr_pfonnr;
+					if (1 == gsm.GetPhoneNumber(i, tmpnr))
+						++nr_pfonnr;	//Find number in specified position
 					else
 						break;
 				}
-				Serial.println(nr_pfonnr);
+
 				if (nr_pfonnr < 7) //max 6 number
 				{
-					error = gsm.WritePhoneNumber(nr_pfonnr, number);
-					if (error != 0)
+					if (gsm.WritePhoneNumber(nr_pfonnr, number) != 0)
 					{
-						sprintf_P(buffer,
-								PSTR(
-										"Number %s writed in Phone Book position %d"),
+#ifndef DEBUG_GSMRX
+						sprintf_P(buffer, PSTR("%s writed at position %d"),
 								number, nr_pfonnr);
 						Serial.println(buffer);
-						++nr_pfonnr;
+#endif
+						//++nr_pfonnr;
 						strcpy_P(buffer, PSTR("Acceptat"));
 						gsm.SendSMS(number, buffer);
 
 					}
 					else
 					{
-						strcpy_P(buffer, PSTR("Writing error"));
+						strcpy_P(buffer, PSTR("ERROR"));
 						Serial.println(buffer);
 						gsm.SendSMS(number, buffer);
 					}
 				}
 				else
 				{
-					strcpy_P(buffer, PSTR("No free slot"));
+					strcpy_P(buffer, PSTR("Nu slot"));
 					gsm.SendSMS(number, buffer);
 				}
-			}
-			else
-			{
-				strcpy_P(buffer, PSTR("NE AUTORIZAT"));
-				gsm.SendSMS(number, buffer);
-
 			}
 		}
 		*number = 0x00;
@@ -199,14 +195,13 @@ void loop()
 		id = 0;
 
 	}
-	//chip module up
-	//Serial.print("test\n");
-	error = gsm.SendATCmdWaitResp("AT", 500, 100, "OK", 2);
-	if (error == AT_RESP_ERR_NO_RESP)
-		PORTB |= (1 << PINB5);
-	error = gsm.SendATCmdWaitResp("AT", 500, 100, "OK", 5);
-	if (error == AT_RESP_OK)
-		PORTB &= ~(1 << PINB5);
+	//XXX feeding the dog
+	wdt_reset();
+
+	//test SIM900 module up
+	if (AT_RESP_OK == gsm.SendATCmdWaitResp("AT", 500, 100, "OK", 5))
+		PORTB &= ~(1 << PINB5);			//ERROR LED off
+	else PORTB |= (1 << PINB5);			//ERROR LED on
 
 	delay(50);
 }
@@ -232,46 +227,20 @@ int Check_SMS()
 		//gsm.GetSMS(pos_sms_rx, number, sms_rx, 120);
 		PORTB |= (1 << PINB4);
 		error = gsm.GetAuthorizedSMS(pos_sms_rx, number, sms_rx, 122, 1, 6);
-		if (error == GETSMS_AUTH_SMS)
+		if (error == GETSMS_AUTH_SMS || error == GETSMS_NOT_AUTH_SMS)
 		//if(error > 0)
 		{
-			sprintf_P(str, PSTR("Received SMS from %s (sim position: %d):%s"),
-					number, pos_sms_rx, sms_rx);
+#ifndef DEBUG_GSMRX
+			sprintf_P(str, PSTR("SMS from %s: %s"), number, sms_rx);
 			Serial.println(str);
 			//Serial.println(sms_rx);
-			error = gsm.DeleteSMS(pos_sms_rx);
+#endif
 			PORTB &= ~(1 << PINB4);
-			if (error == 1)
-			{
-				strcpy_P(str, PSTR("SMS deleted"));
-				Serial.println(str);
-			}
+			if (1 == gsm.DeleteSMS(pos_sms_rx))
+				Serial.println(F("Sters"));
 			else
-			{
-				strcpy_P(str, PSTR("SMS not deleted"));
-				Serial.println(str);
-			}
-			return GETSMS_AUTH_SMS;
-		}
-		else //if (error == GETSMS_NOT_AUTH_SMS)
-		{
-			sprintf_P(str, PSTR("Received SMS from %s (sim position: %d):%s"),
-					number, pos_sms_rx, sms_rx);
-			Serial.println(str);
-			PORTB &= ~(1 << PINB4);
-
-			error = gsm.DeleteSMS(pos_sms_rx);
-			if (error == 1)
-			{
-				strcpy_P(str, PSTR("SMS deleted"));
-				Serial.println(str);
-			}
-			else
-			{
-				strcpy_P(str, PSTR("SMS not deleted"));
-				Serial.println(str);
-			}
-			return GETSMS_NOT_AUTH_SMS;
+				Serial.println(F("EROOR"));
+			return error;
 		}
 
 	}
