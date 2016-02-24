@@ -1,0 +1,7 @@
+/Release/
+
+.cproject
+.project
+*.prefs
+spec.d
+.settings/language.settings.xml
